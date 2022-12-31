@@ -1,0 +1,3 @@
+#! /bin/sh
+
+./build_dir/space_squad
