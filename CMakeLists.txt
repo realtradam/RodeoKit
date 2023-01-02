@@ -22,6 +22,7 @@ target_link_directories(${PROJECT_NAME}
 	)
 
 target_link_libraries(${PROJECT_NAME}
-	SDL3::SDL3 # dynamic lib
+	SDL2::SDL2 # dynamic lib
+	#SDL3::SDL3 # dynamic lib
 	#SDL3::SDL3-static # static lib
 	)

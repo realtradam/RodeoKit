@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "lib/lib.h"
-#include "SDL3/SDL.h"
+#include "SDL2/SDL.h"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -35,7 +35,7 @@ main()
 		{
 			screenSurface = SDL_GetWindowSurface(window);
 
-			SDL_FillSurfaceRect(
+			SDL_FillRect(
 					screenSurface,
 					NULL,
 					SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF)
