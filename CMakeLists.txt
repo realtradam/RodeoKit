@@ -1,26 +1,24 @@
 cmake_minimum_required(VERSION 3.25.1)
 include(ExternalProject)
 
-project(space_squad)
+project(RodeoEngine)
 
 file(GLOB SOURCES
-	"src/main.c"
 	"src/rodeo.c"
 	)
 
 #add_library(lib src/lib.c)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} ${SOURCES})
 
 add_subdirectory(external/SDL)
 
 ExternalProject_Add(project_bgfx
 	#BUILD_IN_SOURCE true # this just doesn't work
-	SOURCE_DIR "external/bgfx"
-	BINARY_DIR "../external/bgfx"
+	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
+	BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
 	DOWNLOAD_COMMAND ""
 	CONFIGURE_COMMAND ""
-	#BUILD_ALWAYS true
 	BUILD_COMMAND make linux
 	INSTALL_COMMAND ""
 	)
@@ -30,6 +28,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC external/SDL/include
 	PUBLIC external/bgfx/include
 	PUBLIC external/bx/include
+	PUBLIC include
 	)
 
 target_link_directories(${PROJECT_NAME}
