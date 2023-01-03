@@ -1,69 +1,29 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include "lib/lib.h"
 #include "SDL2/SDL.h"
+#include "SDL2/SDL_syswm.h"
+#include "bgfx/c99/bgfx.h"
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+#include "rodeo.h"
+
+Rodeo__Data_t _state = {0};
+Rodeo__Data_t* state = &_state;
 
 int
 main()
 {
-	SDL_Window* window = NULL;
+	Rodeo__init_window(state, 480, 640, "Rodeo Window");
 
-	SDL_Surface* screenSurface = NULL;
-
-	if(SDL_Init(SDL_INIT_VIDEO) < 0)
+	while(!state->quit)
 	{
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-	}
-	else
-	{
-		window = SDL_CreateWindow(
-				"SDL Tutorial",
-				SDL_WINDOWPOS_UNDEFINED,
-				SDL_WINDOWPOS_UNDEFINED,
-				SCREEN_WIDTH,
-				SCREEN_HEIGHT,
-				SDL_WINDOWEVENT_SHOWN
-				);
-		if(window == NULL)
-		{
-			printf("Window could not be created! SDL_Error %s\n", SDL_GetError());
-		}
-		else
-		{
-			screenSurface = SDL_GetWindowSurface(window);
+		Rodeo__begin(state);
 
-			SDL_FillRect(
-					screenSurface,
-					NULL,
-					SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF)
-					);
+		bgfx_dbg_text_printf(0, 2, 0x6f, "Description: Initialization and debug text.");
 
-			SDL_UpdateWindowSurface(window);
-
-			SDL_Event e;
-			bool quit = false;
-			while(quit == false)
-			{
-				while(SDL_PollEvent(&e))
-				{
-					if(e.type == SDL_QUIT)
-					{
-						quit = true;
-					}
-				}
-			}
-		}
+		Rodeo__end(state);
 	}
 
-	SDL_DestroyWindow(window);
-
-	SDL_Quit();
-
-	printf("number: %d\n", add(1, 3));
-	printf("Hello World");
-
+	Rodeo__deinit_window(state);
+	Rodeo__quit();
 	return 0;
 }
