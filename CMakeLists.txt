@@ -30,13 +30,15 @@ add_subdirectory(external/SDL)
 
 ExternalProject_Add(project_bgfx
 	#BUILD_IN_SOURCE true # this just doesn't work
-	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
+	SOURCE_DIR "external/bgfx"
 	BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
 	DOWNLOAD_COMMAND ""
 	CONFIGURE_COMMAND ""
 	BUILD_COMMAND make linux
 	INSTALL_COMMAND ""
 	)
+
+add_dependencies(RodeoEngine project_bgfx)
 
 
 target_include_directories(${PROJECT_NAME}
