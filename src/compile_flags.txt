@@ -1,4 +1,5 @@
 -I./
+-I../include
 -I../external/SDL/include
 -I../external/bgfx/include
 -I../external/bx/include

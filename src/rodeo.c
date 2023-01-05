@@ -4,16 +4,16 @@
 
 #include "rodeo.h"
 
-//static Rodeo__Data_t Rodeo__State = { 0 };
+//static Rodeo__data_t Rodeo__State = { 0 };
 
 void
 Rodeo__\
 init_window(
-		Rodeo__Data_t* state,
-		int screen_height,
-		int screen_width,
-		char* title
-		)
+	Rodeo__data_t* state,
+	int screen_height,
+	int screen_width,
+	char* title
+)
 {
 	state->window = NULL;
 	state->screen_surface = NULL;
@@ -27,13 +27,13 @@ init_window(
 	}
 
 	state->window = SDL_CreateWindow(
-			title,
-			SDL_WINDOWPOS_UNDEFINED,
-			SDL_WINDOWPOS_UNDEFINED,
-			screen_width,
-			screen_height,
-			SDL_WINDOW_SHOWN
-			);
+		title,
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		screen_width,
+		screen_height,
+		SDL_WINDOW_SHOWN
+	);
 
 	if(state->window == NULL)
 	{
@@ -43,11 +43,11 @@ init_window(
 
 	SDL_VERSION(&state->wmi.version);
 	if(
-			!SDL_GetWindowWMInfo(
-				state->window,
-				&state->wmi
-				)
-	  )
+		!SDL_GetWindowWMInfo(
+			state->window,
+			&state->wmi  
+		)
+	)
 	{
 		printf("SDL_Error %s\n", SDL_GetError());
 		exit(EXIT_FAILURE);
@@ -75,12 +75,12 @@ init_window(
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
 	bgfx_set_view_clear(
-			0,
-			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
-			0x443355FF,
-			1.0f,
-			0
-			);
+		0,
+		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
+		0x443355FF,
+		1.0f,
+		0
+	);
 	bgfx_set_view_rect(0, 0, 0, state->screen_width, state->screen_height);
 
 	bgfx_touch(0);
@@ -90,7 +90,7 @@ init_window(
 
 void
 Rodeo__\
-deinit_window(Rodeo__Data_t* state)
+deinit_window(Rodeo__data_t* state)
 {
 	bgfx_shutdown();
 	SDL_DestroyWindow(state->window);
@@ -105,13 +105,13 @@ quit()
 
 void
 Rodeo__\
-begin(Rodeo__Data_t* state)
+begin(Rodeo__data_t* state)
 {
 }
 
 void
 Rodeo__\
-end(Rodeo__Data_t* state)
+end(Rodeo__data_t* state)
 {
 	while(SDL_PollEvent(&state->sdl_event))
 	{
@@ -122,4 +122,14 @@ end(Rodeo__Data_t* state)
 	}
 	bgfx_touch(0);
 	bgfx_frame(false);
+}
+
+void
+Rodeo__\
+draw_debug_text(u_int16_t x, u_int16_t y, const char *format, ...)
+{
+	va_list argList;
+	va_start(argList, format);
+	bgfx_dbg_text_vprintf(x, y, 0x65, format, argList);
+	va_end(argList);
 }
