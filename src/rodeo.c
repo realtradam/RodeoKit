@@ -1,10 +1,10 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
+#include "cglm/cglm.h"
 
 #include "rodeo.h"
-
-//static Rodeo__data_t Rodeo__State = { 0 };
+#include "rodeo_math.h"
 
 void
 Rodeo__\
@@ -27,13 +27,13 @@ init_window(
 	}
 
 	state->window = SDL_CreateWindow(
-		title,
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		screen_width,
-		screen_height,
-		SDL_WINDOW_SHOWN
-	);
+			title,
+			SDL_WINDOWPOS_UNDEFINED,
+			SDL_WINDOWPOS_UNDEFINED,
+			screen_width,
+			screen_height,
+			SDL_WINDOW_SHOWN
+			);
 
 	if(state->window == NULL)
 	{
@@ -64,13 +64,12 @@ init_window(
 	bgfx_init_t init = {0};
 	bgfx_init_ctor(&init);
 	init.type = BGFX_RENDERER_TYPE_COUNT; // auto determine renderer
+	//init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
 	init.resolution.width = state->screen_width;
 	init.resolution.height = state->screen_height;
 	init.resolution.reset = BGFX_RESET_VSYNC;
 	init.platformData = pd;
 	bgfx_init(&init);
-
-	bgfx_reset(state->screen_width, state->screen_height, BGFX_RESET_VSYNC, init.resolution.format);
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
@@ -83,15 +82,32 @@ init_window(
 	);
 	bgfx_set_view_rect(0, 0, 0, state->screen_width, state->screen_height);
 
-	bgfx_touch(0);
+	bgfx_vertex_layout_begin(&state->vertex_layout, bgfx_get_renderer_type());
+	bgfx_vertex_layout_add(&state->vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+	bgfx_vertex_layout_add(&state->vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
+	bgfx_vertex_layout_end(&state->vertex_layout);
 
-	bgfx_frame(false);
+	state->vertex_buffer_handle = bgfx_create_dynamic_vertex_buffer(RODEO__MAX_VERTEX_SIZE, &state->vertex_layout, BGFX_BUFFER_NONE);
+
+	state->index_buffer_handle = bgfx_create_dynamic_index_buffer((RODEO__MAX_VERTEX_SIZE / 4) * 6, BGFX_BUFFER_NONE);
+
+	// load shaders
+	state->vertex_shader = Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.vertex.bin");
+	state->fragment_shader = Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.fragment.bin");
+	state->program_shader = bgfx_create_program(
+		state->vertex_shader,
+		state->fragment_shader,
+		true
+	);
 }
 
 void
 Rodeo__\
 deinit_window(Rodeo__data_t* state)
 {
+	bgfx_destroy_dynamic_index_buffer(state->index_buffer_handle);
+	bgfx_destroy_dynamic_vertex_buffer(state->vertex_buffer_handle);
+	bgfx_destroy_program(state->program_shader);
 	bgfx_shutdown();
 	SDL_DestroyWindow(state->window);
 }
@@ -107,12 +123,37 @@ void
 Rodeo__\
 begin(Rodeo__data_t* state)
 {
+	//vec3 eye = {0.0f, 0.0f, -35.0f};
+	//vec3 center = {0.0f, 0.0f, 0.0f};
+	//vec3 up = {0, 1, 0};
+	mat4 view;
+	//glm_lookat(eye, center, up, view);
+	glm_mat4_identity(view);
+
+	mat4 proj;
+	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
+	glm_ortho(
+		0,
+		state->screen_width,
+		state->screen_height,
+		0,
+		100.0f, // backwards because winding is wrong
+		-0.1f,  // TODO: fix cglm winding order
+		proj
+	);
+	bgfx_set_view_transform(0, view, proj);
+	bgfx_set_view_rect(0, 0, 0, state->screen_width, state->screen_height);
+	bgfx_touch(0);
 }
 
 void
 Rodeo__\
 end(Rodeo__data_t* state)
 {
+	Rodeo__flush_batch(state);
+
+	bgfx_frame(false);
+
 	while(SDL_PollEvent(&state->sdl_event))
 	{
 		if(state->sdl_event.type == SDL_QUIT)
@@ -120,8 +161,6 @@ end(Rodeo__data_t* state)
 			state->quit = true;
 		}
 	}
-	bgfx_touch(0);
-	bgfx_frame(false);
 }
 
 void
@@ -132,4 +171,123 @@ draw_debug_text(u_int16_t x, u_int16_t y, const char *format, ...)
 	va_start(argList, format);
 	bgfx_dbg_text_vprintf(x, y, 0x65, format, argList);
 	va_end(argList);
+}
+
+const char *
+Rodeo__\
+get_renderer_name_as_string()
+{
+	return bgfx_get_renderer_name(bgfx_get_renderer_type());
+}
+
+void
+Rodeo__\
+flush_batch(Rodeo__data_t *state)
+{
+	if(state->vertex_size > 0)
+	{
+		// upload remaining batched vertices
+		bgfx_set_dynamic_vertex_buffer(0, state->vertex_buffer_handle, 0, state->vertex_size);
+		const bgfx_memory_t* vbm = bgfx_copy(state->batched_vertices, sizeof(Rodeo__position_color_vertex_t) * state->vertex_size);
+		bgfx_update_dynamic_vertex_buffer(state->vertex_buffer_handle,  0, vbm);
+
+		// upload remaining batched indices
+		bgfx_set_dynamic_index_buffer(state->index_buffer_handle, 0, state->index_size);
+		const bgfx_memory_t* ibm = bgfx_copy(state->batched_indices, sizeof(uint16_t) * state->index_size);
+		bgfx_update_dynamic_index_buffer(state->index_buffer_handle, 0, ibm);
+
+		// submit vertices & batches
+		bgfx_submit(0, state->program_shader, 0, BGFX_DISCARD_ALL);
+
+		// reset arrays
+		state->vertex_size = 0;
+		state->index_size = 0;
+		state->index_count = 0;
+	}
+}
+
+void
+Rodeo__\
+draw_rectangle(
+	Rodeo__data_t *state,
+	u_int16_t x,
+	u_int16_t y,
+	u_int16_t width,
+	u_int16_t height,
+	struct Rodeo__color_rgba_t color
+)
+{
+	const uint32_t abgr = Rodeo__Math__color_rgba_to_uint32(color);
+	if(state->vertex_size < RODEO__MAX_VERTEX_SIZE)
+	{
+		state->batched_vertices[state->vertex_size] =
+			(Rodeo__position_color_vertex_t)
+			{
+				(float)width + (float)x, (float)height + (float)y, 0.0f, abgr
+			};
+		state->vertex_size += 1;
+		state->batched_vertices[state->vertex_size] =
+			(Rodeo__position_color_vertex_t)
+			{
+				(float)width + (float)x, (float)y, 0.0f, abgr
+			};
+		state->vertex_size += 1;
+		state->batched_vertices[state->vertex_size] =
+			(Rodeo__position_color_vertex_t)
+			{
+				(float)x, (float)y, 0.0f, abgr
+			};
+		state->vertex_size += 1;
+		state->batched_vertices[state->vertex_size] =
+			(Rodeo__position_color_vertex_t)
+			{
+				(float)x, (float)height + (float)y, 0.0f, abgr
+			};
+		state->vertex_size += 1;
+
+		state->batched_indices[state->index_size] = state->index_count;
+		state->index_size += 1;
+		state->batched_indices[state->index_size] = state->index_count + 1;
+		state->index_size += 1;
+		state->batched_indices[state->index_size] = state->index_count + 3;
+		state->index_size += 1;
+		state->batched_indices[state->index_size] = state->index_count + 1;
+		state->index_size += 1;
+		state->batched_indices[state->index_size] = state->index_count + 2;
+		state->index_size += 1;
+		state->batched_indices[state->index_size] = state->index_count + 3;
+		state->index_size += 1;
+		state->index_count += 4;
+	}
+
+	if(state->vertex_size >= RODEO__MAX_VERTEX_SIZE)
+	{
+		Rodeo__flush_batch(state);
+	}
+}
+
+bgfx_shader_handle_t
+Rodeo__\
+load_shader(const char* path)
+{
+	bgfx_shader_handle_t invalid = BGFX_INVALID_HANDLE;
+
+	FILE *file = fopen(path, "rb");
+
+	if(!file)
+	{
+		printf("Error: shader file \"%s\" not found", path);
+		return invalid;
+	}
+
+	fseek(file, 0, SEEK_END);
+	long file_size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	const bgfx_memory_t *mem = bgfx_alloc(file_size + 1);
+	fread(mem->data, 1, file_size, file);
+	mem->data[mem->size - 1] = '\0';
+	fclose(file);
+
+	return bgfx_create_shader(mem);
 }

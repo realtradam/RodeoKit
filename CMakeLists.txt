@@ -5,6 +5,7 @@ project(RodeoEngine)
 
 file(GLOB SOURCES
 	"src/rodeo.c"
+	"src/rodeo_math.c"
 	)
 
 #add_library(lib src/lib.c)
@@ -27,6 +28,9 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 endif()
 
 add_subdirectory(external/SDL)
+add_subdirectory(external/cglm EXCLUDE_FROM_ALL)
+
+#option(CGLM_FORCE_LEFT_HANDED "" ON)
 
 ExternalProject_Add(project_bgfx
 	#BUILD_IN_SOURCE true # this just doesn't work
@@ -45,6 +49,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC external/SDL/include
 	PUBLIC external/bgfx/include
 	PUBLIC external/bx/include
+	PUBLIC external/cglm/include
 	PUBLIC include
 	)
 
@@ -53,11 +58,11 @@ target_link_directories(${PROJECT_NAME}
 	PRIVATE external/bgfx
 	)
 
+
 ExternalProject_Get_Property(project_bgfx BINARY_DIR)
 #message("++" ${BINARY_DIR})
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
 	SDL2::SDL2 # dynamic lib
-	#SDL3::SDL3 # dynamic lib
-	#SDL3::SDL3-static # static lib
-	${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libRelease.so
+	cglm
+	${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
 	)

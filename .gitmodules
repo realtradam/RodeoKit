@@ -10,3 +10,6 @@
 [submodule "external/bgfx"]
 	path = external/bgfx
 	url = https://github.com/bkaradzic/bgfx.git
+[submodule "external/cglm"]
+	path = external/cglm
+	url = https://github.com/recp/cglm
