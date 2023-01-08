@@ -30,8 +30,6 @@ endif()
 add_subdirectory(external/SDL)
 add_subdirectory(external/cglm EXCLUDE_FROM_ALL)
 
-#option(CGLM_FORCE_LEFT_HANDED "" ON)
-
 ExternalProject_Add(project_bgfx
 	#BUILD_IN_SOURCE true # this just doesn't work
 	SOURCE_DIR "external/bgfx"
@@ -63,6 +61,6 @@ ExternalProject_Get_Property(project_bgfx BINARY_DIR)
 #message("++" ${BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	SDL2::SDL2 # dynamic lib
-	cglm
+	cglm_headers
 	${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
 	)

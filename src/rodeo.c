@@ -1,6 +1,9 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
+//#define CGLM_FORCE_LEFT_HANDED
+//#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
+#define CGLM_CLIPSPACE_INCLUDE_ALL
 #include "cglm/cglm.h"
 
 #include "rodeo.h"
@@ -73,6 +76,8 @@ init_window(
 
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
+	//bgfx_set_state(BGFX_STATE_CULL_CCW, 0);
+
 	bgfx_set_view_clear(
 		0,
 		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
@@ -132,13 +137,18 @@ begin(Rodeo__data_t* state)
 
 	mat4 proj;
 	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
-	glm_ortho(
+
+	// TODO: figure out if why 'zo' is correct
+	// but 'no' is incorrect
+	glm_ortho_rh_zo( 
 		0,
 		state->screen_width,
 		state->screen_height,
 		0,
-		100.0f, // backwards because winding is wrong
-		-0.1f,  // TODO: fix cglm winding order
+		// near
+		-0.1f,
+		// far
+		100.0f,
 		proj
 	);
 	bgfx_set_view_transform(0, view, proj);
@@ -196,6 +206,16 @@ flush_batch(Rodeo__data_t *state)
 		const bgfx_memory_t* ibm = bgfx_copy(state->batched_indices, sizeof(uint16_t) * state->index_size);
 		bgfx_update_dynamic_index_buffer(state->index_buffer_handle, 0, ibm);
 
+		bgfx_set_state(
+			BGFX_STATE_CULL_CW |
+			BGFX_STATE_WRITE_RGB |
+			BGFX_STATE_WRITE_A |
+			//BGFX_STATE_DEPTH_TEST_LESS |
+			//BGFX_STATE_MSAA |
+			BGFX_STATE_BLEND_ALPHA,
+			0
+		);
+
 		// submit vertices & batches
 		bgfx_submit(0, state->program_shader, 0, BGFX_DISCARD_ALL);
 
@@ -245,17 +265,24 @@ draw_rectangle(
 			};
 		state->vertex_size += 1;
 
-		state->batched_indices[state->index_size] = state->index_count;
+		int indices[] =
+		{
+			0, 1, 3,
+			1, 2, 3
+			//2, 1, 0,
+			//2, 3, 1
+		};
+		state->batched_indices[state->index_size] = state->index_count + indices[0];
 		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + 1;
+		state->batched_indices[state->index_size] = state->index_count + indices[1];
 		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + 3;
+		state->batched_indices[state->index_size] = state->index_count + indices[2];
 		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + 1;
+		state->batched_indices[state->index_size] = state->index_count + indices[3];
 		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + 2;
+		state->batched_indices[state->index_size] = state->index_count + indices[4];
 		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + 3;
+		state->batched_indices[state->index_size] = state->index_count + indices[5];
 		state->index_size += 1;
 		state->index_count += 4;
 	}
