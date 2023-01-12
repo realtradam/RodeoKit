@@ -6,6 +6,8 @@ project(RodeoEngine)
 file(GLOB SOURCES
 	"src/rodeo.c"
 	"src/rodeo_math.c"
+	"src/rodeo_types.c"
+	"src/rodeo_error.c"
 	)
 
 #add_library(lib src/lib.c)
@@ -49,6 +51,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC external/bx/include
 	PUBLIC external/cglm/include
 	PUBLIC include
+	PRIVATE src
 	)
 
 target_link_directories(${PROJECT_NAME}
@@ -62,5 +65,6 @@ ExternalProject_Get_Property(project_bgfx BINARY_DIR)
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	SDL2::SDL2 # dynamic lib
 	cglm_headers
-	${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
+	${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libRelease.so
+	#${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
 	)

@@ -1,10 +1,12 @@
+
+// public internal
 #include "rodeo.h"
 #include "rodeo_math.h"
 
 uint32_t
 Rodeo__\
 Math__\
-color_rgba_to_uint32(const struct Rodeo__color_rgba_t color)
+color_rgba_to_uint32(const Rodeo__color_rgba_t color)
 {
 	return
 	  ((uint32_t)(uint8_t)(color.red   * 255))

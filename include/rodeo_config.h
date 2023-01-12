@@ -1,0 +1,2 @@
+
+#define RODEO__MAX_VERTEX_SIZE 8192

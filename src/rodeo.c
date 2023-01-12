@@ -1,23 +1,42 @@
+
+// public internal
+#include "rodeo.h"
+#include "rodeo_math.h"
+#include "rodeo_types.h"
+// private internal
+#include "private/rodeo_internal.h"
+#include "private/rodeo_internal_types.h"
+#include "private/rodeo_error.h"
+
+// external
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
 //#define CGLM_FORCE_LEFT_HANDED
-//#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
-#define CGLM_CLIPSPACE_INCLUDE_ALL
+#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
+//#define CGLM_CLIPSPACE_INCLUDE_ALL
 #include "cglm/cglm.h"
-
-#include "rodeo.h"
-#include "rodeo_math.h"
 
 void
 Rodeo__\
 init_window(
-	Rodeo__data_t* state,
+	Rodeo__data_p *state_p,
 	int screen_height,
 	int screen_width,
 	char* title
 )
 {
+	*state_p = (Rodeo__data_p)malloc(sizeof(Rodeo__data_t));
+	Rodeo__data_p state = *state_p;
+	if(!state)
+	{
+		Rodeo__error_exit(
+			RODEO__ERROR__UNINITIALIZED_STATE,
+			__FUNCTION__,
+			__LINE__,
+			"Malloc failed to initialize state."
+		);
+	}
 	state->window = NULL;
 	state->screen_surface = NULL;
 	state->screen_height = screen_height;
@@ -97,8 +116,8 @@ init_window(
 	state->index_buffer_handle = bgfx_create_dynamic_index_buffer((RODEO__MAX_VERTEX_SIZE / 4) * 6, BGFX_BUFFER_NONE);
 
 	// load shaders
-	state->vertex_shader = Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.vertex.bin");
-	state->fragment_shader = Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.fragment.bin");
+	state->vertex_shader = _Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.vertex.bin");
+	state->fragment_shader = _Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.fragment.bin");
 	state->program_shader = bgfx_create_program(
 		state->vertex_shader,
 		state->fragment_shader,
@@ -108,8 +127,17 @@ init_window(
 
 void
 Rodeo__\
-deinit_window(Rodeo__data_t* state)
+deinit_window(Rodeo__data_p state)
 {
+	if(!state)
+	{
+		Rodeo__error_exit(
+			RODEO__ERROR__UNINITIALIZED_STATE,
+			__FUNCTION__,
+			__LINE__,
+			RODEO__EMPTY_ERROR_MESSAGE  
+		);
+	}
 	bgfx_destroy_dynamic_index_buffer(state->index_buffer_handle);
 	bgfx_destroy_dynamic_vertex_buffer(state->vertex_buffer_handle);
 	bgfx_destroy_program(state->program_shader);
@@ -126,8 +154,17 @@ quit()
 
 void
 Rodeo__\
-begin(Rodeo__data_t* state)
+begin(Rodeo__data_p state)
 {
+	if(!state)
+	{
+		Rodeo__error_exit(
+			RODEO__ERROR__UNINITIALIZED_STATE,
+			__FUNCTION__,
+			__LINE__,
+			RODEO__EMPTY_ERROR_MESSAGE  
+		);
+	}
 	//vec3 eye = {0.0f, 0.0f, -35.0f};
 	//vec3 center = {0.0f, 0.0f, 0.0f};
 	//vec3 up = {0, 1, 0};
@@ -158,8 +195,17 @@ begin(Rodeo__data_t* state)
 
 void
 Rodeo__\
-end(Rodeo__data_t* state)
+end(Rodeo__data_p state)
 {
+	if(!state)
+	{
+		Rodeo__error_exit(
+			RODEO__ERROR__UNINITIALIZED_STATE,
+			__FUNCTION__,
+			__LINE__,
+			RODEO__EMPTY_ERROR_MESSAGE  
+		);
+	}
 	Rodeo__flush_batch(state);
 
 	bgfx_frame(false);
@@ -171,6 +217,13 @@ end(Rodeo__data_t* state)
 			state->quit = true;
 		}
 	}
+}
+
+bool
+Rodeo__\
+should_quit(Rodeo__data_p state)
+{
+	return state->quit;
 }
 
 void
@@ -192,7 +245,7 @@ get_renderer_name_as_string()
 
 void
 Rodeo__\
-flush_batch(Rodeo__data_t *state)
+flush_batch(Rodeo__data_p state)
 {
 	if(state->vertex_size > 0)
 	{
@@ -229,12 +282,12 @@ flush_batch(Rodeo__data_t *state)
 void
 Rodeo__\
 draw_rectangle(
-	Rodeo__data_t *state,
+	Rodeo__data_p state,
 	u_int16_t x,
 	u_int16_t y,
 	u_int16_t width,
 	u_int16_t height,
-	struct Rodeo__color_rgba_t color
+	Rodeo__color_rgba_t color
 )
 {
 	const uint32_t abgr = Rodeo__Math__color_rgba_to_uint32(color);
@@ -294,7 +347,7 @@ draw_rectangle(
 }
 
 bgfx_shader_handle_t
-Rodeo__\
+_Rodeo__\
 load_shader(const char* path)
 {
 	bgfx_shader_handle_t invalid = BGFX_INVALID_HANDLE;
