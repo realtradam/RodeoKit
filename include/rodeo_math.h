@@ -8,4 +8,4 @@
 uint32_t
 Rodeo__\
 Math__\
-color_rgba_to_uint32(const Rodeo__color_rgba_t color);
+color_rgba_to_uint32(const rodeo_rgba_t color);

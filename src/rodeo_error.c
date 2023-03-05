@@ -38,7 +38,7 @@ error_exit(
 		default:
 			Rodeo__error_exit(
 				RODEO__ERROR__UNREACHABLE_REACHED,
-				__FUNCTION__,
+				__func__,
 				__LINE__,
 				"Unhandled error code."
 			);

@@ -1,4 +1,4 @@
-
+// -- internal --
 // public internal
 #include "rodeo.h"
 #include "rodeo_math.h"
@@ -8,7 +8,7 @@
 #include "private/rodeo_internal_types.h"
 #include "private/rodeo_error.h"
 
-// external
+// -- external --
 #if __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
@@ -21,21 +21,21 @@
 #include "cglm/cglm.h"
 
 void
-Rodeo__\
-init_window(
-	Rodeo__data_p *state_p,
+rodeo_\
+window_init(
+	rodeo_data_p *state_p,
 	int screen_height,
 	int screen_width,
 	char* title
 )
 {
-	*state_p = (Rodeo__data_p)malloc(sizeof(Rodeo__data_t));
-	Rodeo__data_p state = *state_p;
+	*state_p = (rodeo_data_p)malloc(sizeof(rodeo_data_t));
+	rodeo_data_p state = *state_p;
 	if(!state)
 	{
 		Rodeo__error_exit(
 			RODEO__ERROR__UNINITIALIZED_STATE,
-			__FUNCTION__,
+			__func__,
 			__LINE__,
 			"Malloc failed to initialize state."
 		);
@@ -161,8 +161,8 @@ init_window(
 	fragment_path[shader_length + fragment_length] = 0;
 	vertex_path[shader_length + vertex_length] = 0;
 
-	state->vertex_shader = _Rodeo__load_shader(vertex_path);
-	state->fragment_shader = _Rodeo__load_shader(fragment_path);
+	state->vertex_shader = irodeo_shader_load(vertex_path);
+	state->fragment_shader = irodeo_shader_load(fragment_path);
 	state->program_shader = bgfx_create_program(
 		state->vertex_shader,
 		state->fragment_shader,
@@ -171,14 +171,14 @@ init_window(
 }
 
 void
-Rodeo__\
-deinit_window(Rodeo__data_p state)
+rodeo_\
+window_deinit(rodeo_data_p state)
 {
 	if(!state)
 	{
 		Rodeo__error_exit(
 			RODEO__ERROR__UNINITIALIZED_STATE,
-			__FUNCTION__,
+			__func__,
 			__LINE__,
 			RODEO__EMPTY_ERROR_MESSAGE  
 		);
@@ -191,21 +191,21 @@ deinit_window(Rodeo__data_p state)
 }
 
 void
-Rodeo__\
-quit()
+rodeo_\
+deinit(void)
 {
 	SDL_Quit();
 }
 
 void
-Rodeo__\
-begin(Rodeo__data_p state)
+rodeo_\
+begin(rodeo_data_p state)
 {
 	if(!state)
 	{
 		Rodeo__error_exit(
 			RODEO__ERROR__UNINITIALIZED_STATE,
-			__FUNCTION__,
+			__func__,
 			__LINE__,
 			RODEO__EMPTY_ERROR_MESSAGE  
 		);
@@ -239,19 +239,19 @@ begin(Rodeo__data_p state)
 }
 
 void
-Rodeo__\
-end(Rodeo__data_p state)
+rodeo_\
+end(rodeo_data_p state)
 {
 	if(!state)
 	{
 		Rodeo__error_exit(
 			RODEO__ERROR__UNINITIALIZED_STATE,
-			__FUNCTION__,
+			__func__,
 			__LINE__,
 			RODEO__EMPTY_ERROR_MESSAGE  
 		);
 	}
-	Rodeo__flush_batch(state);
+	rodeo_renderer_flush(state);
 
 	bgfx_frame(false);
 
@@ -265,16 +265,16 @@ end(Rodeo__data_p state)
 }
 
 void
-Rodeo__\
-execute_main_loop(
-	Rodeo__data_p state,
-	Rodeo__main_loop_p main_loop_function
+rodeo_\
+mainloop_set(
+	rodeo_data_p state,
+	rodeo_mainloop_func main_loop_function
 )
 {
 #if __EMSCRIPTEN__
 	emscripten_set_main_loop(main_loop_function, 0, 1);
 #else
-	while(!Rodeo__should_quit(state))
+	while(!rodeo_window_check_quit(state))
 	{
 		main_loop_function();
 	}
@@ -282,22 +282,22 @@ execute_main_loop(
 }
 
 bool
-Rodeo__\
-should_quit(Rodeo__data_p state)
+rodeo_\
+window_check_quit(rodeo_data_p state)
 {
 	return state->quit;
 }
 
 void
-Rodeo__\
-set_quit(Rodeo__data_p state, bool quit)
+rodeo_\
+set_quit(rodeo_data_p state, bool quit)
 {
 	state->quit = quit;
 }
 
 void
-Rodeo__\
-draw_debug_text(u_int16_t x, u_int16_t y, const char *format, ...)
+rodeo_\
+debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
 {
 	va_list argList;
 	va_start(argList, format);
@@ -306,21 +306,21 @@ draw_debug_text(u_int16_t x, u_int16_t y, const char *format, ...)
 }
 
 const char *
-Rodeo__\
-get_renderer_name_as_string()
+rodeo_\
+renderer_name_get(void)
 {
 	return bgfx_get_renderer_name(bgfx_get_renderer_type());
 }
 
 void
-Rodeo__\
-flush_batch(Rodeo__data_p state)
+rodeo_\
+renderer_flush(rodeo_data_p state)
 {
 	if(state->vertex_size > 0)
 	{
 		// upload remaining batched vertices
 		bgfx_set_dynamic_vertex_buffer(0, state->vertex_buffer_handle, 0, state->vertex_size);
-		const bgfx_memory_t* vbm = bgfx_copy(state->batched_vertices, sizeof(Rodeo__position_color_vertex_t) * state->vertex_size);
+		const bgfx_memory_t* vbm = bgfx_copy(state->batched_vertices, sizeof(rodeo_position_color_vertex_t) * state->vertex_size);
 		bgfx_update_dynamic_vertex_buffer(state->vertex_buffer_handle,  0, vbm);
 
 		// upload remaining batched indices
@@ -349,39 +349,39 @@ flush_batch(Rodeo__data_p state)
 }
 
 void
-Rodeo__\
-draw_rectangle(
-	Rodeo__data_p state,
+rodeo_\
+rectangle_draw(
+	rodeo_data_p state,
 	u_int16_t x,
 	u_int16_t y,
 	u_int16_t width,
 	u_int16_t height,
-	Rodeo__color_rgba_t color
+	rodeo_rgba_t color
 )
 {
 	const uint32_t abgr = Rodeo__Math__color_rgba_to_uint32(color);
 	if(state->vertex_size < RODEO__MAX_VERTEX_SIZE)
 	{
 		state->batched_vertices[state->vertex_size] =
-			(Rodeo__position_color_vertex_t)
+			(rodeo_position_color_vertex_t)
 			{
 				(float)width + (float)x, (float)height + (float)y, 0.0f, abgr
 			};
 		state->vertex_size += 1;
 		state->batched_vertices[state->vertex_size] =
-			(Rodeo__position_color_vertex_t)
+			(rodeo_position_color_vertex_t)
 			{
 				(float)width + (float)x, (float)y, 0.0f, abgr
 			};
 		state->vertex_size += 1;
 		state->batched_vertices[state->vertex_size] =
-			(Rodeo__position_color_vertex_t)
+			(rodeo_position_color_vertex_t)
 			{
 				(float)x, (float)y, 0.0f, abgr
 			};
 		state->vertex_size += 1;
 		state->batched_vertices[state->vertex_size] =
-			(Rodeo__position_color_vertex_t)
+			(rodeo_position_color_vertex_t)
 			{
 				(float)x, (float)height + (float)y, 0.0f, abgr
 			};
@@ -411,13 +411,13 @@ draw_rectangle(
 
 	if(state->vertex_size >= RODEO__MAX_VERTEX_SIZE)
 	{
-		Rodeo__flush_batch(state);
+		rodeo_renderer_flush(state);
 	}
 }
 
 bgfx_shader_handle_t
-_Rodeo__\
-load_shader(const char* path)
+irodeo_\
+shader_load(const char* path)
 {
 	bgfx_shader_handle_t invalid = BGFX_INVALID_HANDLE;
 

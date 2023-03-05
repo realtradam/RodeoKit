@@ -4,3 +4,6 @@
 -I../external/bgfx/include
 -I../external/bx/include
 -I../external/cglm/include
+-Wall
+-Wextra
+-Wpedantic

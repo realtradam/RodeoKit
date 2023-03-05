@@ -6,37 +6,34 @@
 
 typedef
 struct
-Rodeo__\
-color_rgba
 {
 	float red;
 	float green;
 	float blue;
 	float alpha;
 }
-Rodeo__\
-color_rgba_t;
+rodeo_\
+rgba_t;
 
 typedef
 struct
-Rodeo__position_color_vertex
 {
 	float x;
 	float y;
 	float z;
 	uint32_t abgr;
 }
-Rodeo__\
+rodeo_\
 position_color_vertex_t;
+//rodeo_poscolvert_t
 
 typedef
 struct
-Rodeo__data
-*Rodeo__\
-data_p;
+rodeo_data_t
+*rodeo_data_p;
 
 typedef
 void
-(*Rodeo__\
-main_loop_p)
+(*rodeo_\
+mainloop_func)
 (void);

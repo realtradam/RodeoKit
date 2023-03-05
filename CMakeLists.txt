@@ -24,14 +24,14 @@ file(GLOB SOURCES
 
 add_library(${PROJECT_NAME} ${SOURCES})
 
-#if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-#target_compile_options(${PROJECT_NAME} PRIVATE
-#-Wall
-#-Wextra
-#-Wpedantic
-##-Werror
-#)
-#endif()
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+target_compile_options(${PROJECT_NAME} PRIVATE
+-Wall
+-Wextra
+-Wpedantic
+#-Werror
+)
+endif()
 
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
