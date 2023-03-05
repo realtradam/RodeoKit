@@ -1,3 +1,5 @@
 #! /bin/sh
 ./external/bgfx/.build/linux64_gcc/bin/shadercRelease -f ./src/shaders/simple.vertex.sc -o ./build_dir/simple.vertex.bin --platform linux --type vertex --verbose -i ./external/bgfx/src/ -p spirv
 ./external/bgfx/.build/linux64_gcc/bin/shadercRelease -f ./src/shaders/simple.fragment.sc -o ./build_dir/simple.fragment.bin --platform linux --type fragment --verbose -i ./external/bgfx/src/ -p spirv
+#./external/bgfx/.build/linux64_gcc/bin/shadercRelease -f ./src/shaders/simple.vertex.sc -o ./build_dir/simple.vertex.bin --platform asm.js --type vertex --verbose -i ./external/bgfx/src/ -p 100_es
+#./external/bgfx/.build/linux64_gcc/bin/shadercRelease -f ./src/shaders/simple.fragment.sc -o ./build_dir/simple.fragment.bin --platform asm.js --type fragment --verbose -i ./external/bgfx/src/ -p 100_es

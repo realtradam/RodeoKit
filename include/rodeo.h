@@ -35,9 +35,20 @@ void
 Rodeo__\
 end(Rodeo__data_p state);
 
+void
+Rodeo__\
+execute_main_loop(
+	Rodeo__data_p state,
+	Rodeo__main_loop_p main_loop_function
+);
+
 bool
 Rodeo__\
 should_quit(Rodeo__data_p state);
+
+void
+Rodeo__\
+set_quit(Rodeo__data_p state, bool quit);
 
 void
 Rodeo__\

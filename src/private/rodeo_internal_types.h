@@ -5,6 +5,9 @@
 #include "rodeo_types.h"
 
 // system
+#if __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"

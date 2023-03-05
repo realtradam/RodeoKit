@@ -1,4 +1,5 @@
 [Bb]uild_[Dd]ir
+project_bgfx-prefix
 
 # CMake
 CMakeLists.txt.user

@@ -1,3 +1,4 @@
 #! /bin/sh
 
-cmake -S . -B build_dir
+cmake -S . -B build_dir/tux
+#emcmake cmake -S . -B build_dir/web

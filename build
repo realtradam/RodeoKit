@@ -1,2 +1,3 @@
 #! /bin/sh
-cd build_dir ; make
+cd build_dir/tux ; make
+#cd build_dir/web ; emmake make

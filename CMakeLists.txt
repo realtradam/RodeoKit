@@ -3,6 +3,16 @@ include(ExternalProject)
 
 project(RodeoEngine)
 
+set(CMAKE_BUILD_TYPE Debug)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2 -std=c++11")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s MIN_WEBGL_VERSION=2")
+endif()
+option(CGLM_SHARED "Shared build" OFF)
+option(CGLM_STATIC "Static build" ON)
+
 file(GLOB SOURCES
 	"src/rodeo.c"
 	"src/rodeo_math.c"
@@ -14,9 +24,18 @@ file(GLOB SOURCES
 
 add_library(${PROJECT_NAME} ${SOURCES})
 
+#if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+#target_compile_options(${PROJECT_NAME} PRIVATE
+#-Wall
+#-Wextra
+#-Wpedantic
+##-Werror
+#)
+#endif()
+
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-# Update submodules as needed
+	# Update submodules as needed
 	option(GIT_SUBMODULE "Check submodules during build" ON)
 	if(GIT_SUBMODULE)
 		message(STATUS "Submodule update")
@@ -29,42 +48,90 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 	endif()
 endif()
 
-add_subdirectory(external/SDL)
-add_subdirectory(external/cglm EXCLUDE_FROM_ALL)
 
-ExternalProject_Add(project_bgfx
-	#BUILD_IN_SOURCE true # this just doesn't work
-	SOURCE_DIR "external/bgfx"
-	BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
-	DOWNLOAD_COMMAND ""
-	CONFIGURE_COMMAND ""
-	BUILD_COMMAND make linux
-	INSTALL_COMMAND ""
-	)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+	add_subdirectory(external/SDL)
+endif()
+add_subdirectory(external/cglm)
+
+message("this is the dir")
+message(${CMAKE_CURRENT_SOURCE_DIR})
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND make --makefile=buildShaders.mk
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+	ExternalProject_Add(project_bgfx
+		#BUILD_IN_SOURCE true # this just doesn't work
+		SOURCE_DIR "external/bgfx"
+		BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
+		DOWNLOAD_COMMAND ""
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND make wasm-release
+		INSTALL_COMMAND ""
+		BUILD_ALWAYS TRUE
+		)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	ExternalProject_Add(project_bgfx
+		#BUILD_IN_SOURCE true # this just doesn't work
+		SOURCE_DIR "external/bgfx"
+		BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/bgfx"
+		DOWNLOAD_COMMAND ""
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND make linux-release64
+		INSTALL_COMMAND ""
+		BUILD_ALWAYS TRUE
+		)
+endif()
 
 add_dependencies(RodeoEngine project_bgfx)
 
 
-target_include_directories(${PROJECT_NAME}
-	PUBLIC external/SDL/include
-	PUBLIC external/bgfx/include
-	PUBLIC external/bx/include
-	PUBLIC external/cglm/include
-	PUBLIC include
-	PRIVATE src
-	)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+	target_include_directories(${PROJECT_NAME}
+		PUBLIC external/bgfx/include
+		PUBLIC external/bx/include
+		PUBLIC external/cglm/include
+		PUBLIC include
+		PRIVATE src
+		)
 
-target_link_directories(${PROJECT_NAME}
-	PRIVATE external/SDL
-	PRIVATE external/bgfx
-	)
+	target_link_directories(${PROJECT_NAME}
+		PRIVATE external/bgfx
+		)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	target_include_directories(${PROJECT_NAME}
+		PUBLIC external/SDL/include
+		PUBLIC external/bgfx/include
+		PUBLIC external/bx/include
+		PUBLIC external/cglm/include
+		PUBLIC include
+		PRIVATE src
+		)
 
+	target_link_directories(${PROJECT_NAME}
+		PRIVATE external/SDL
+		PRIVATE external/bgfx
+		)
+endif()
 
 ExternalProject_Get_Property(project_bgfx BINARY_DIR)
-#message("++" ${BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE
-	SDL2::SDL2 # dynamic lib
-	cglm_headers
-	${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libRelease.so
-	#${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libDebug.so
-	)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+	target_link_libraries(${PROJECT_NAME} PRIVATE
+		cglm
+		${BINARY_DIR}/.build/wasm/bin/bgfxRelease.bc
+		${BINARY_DIR}/.build/wasm/bin/bxRelease.bc
+		${BINARY_DIR}/.build/wasm/bin/bimgRelease.bc
+		)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	target_link_libraries(${PROJECT_NAME} PRIVATE
+		#SDL2::SDL2-static # static lib
+		#SDL2::SDL2main
+		SDL2::SDL2 # dynamic lib
+		cglm
+		${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libRelease.so
+		)
+endif()

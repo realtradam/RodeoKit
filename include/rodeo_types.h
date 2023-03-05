@@ -34,3 +34,9 @@ struct
 Rodeo__data
 *Rodeo__\
 data_p;
+
+typedef
+void
+(*Rodeo__\
+main_loop_p)
+(void);

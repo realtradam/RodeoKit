@@ -9,6 +9,9 @@
 #include "private/rodeo_error.h"
 
 // external
+#if __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
@@ -42,12 +45,15 @@ init_window(
 	state->screen_height = screen_height;
 	state->screen_width = screen_width;
 
+	printf("SDL_Init...\n");
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 		exit(EXIT_FAILURE);
 	}
+	printf("done\n");
 
+	printf("SDL_CreateWindow...\n");
 	state->window = SDL_CreateWindow(
 			title,
 			SDL_WINDOWPOS_UNDEFINED,
@@ -56,13 +62,15 @@ init_window(
 			screen_height,
 			SDL_WINDOW_SHOWN
 			);
+	printf("done\n");
 
 	if(state->window == NULL)
 	{
 		printf("Window could not be created! SDL_Error %s\n", SDL_GetError());
 		exit(EXIT_FAILURE);
 	}
-
+#if !__EMSCRIPTEN__
+	printf("SDL_VERSION...\n");
 	SDL_VERSION(&state->wmi.version);
 	if(
 		!SDL_GetWindowWMInfo(
@@ -74,14 +82,22 @@ init_window(
 		printf("SDL_Error %s\n", SDL_GetError());
 		exit(EXIT_FAILURE);
 	}
-
+	printf("done\n");
 	bgfx_render_frame(-1);
+#endif
+
 
 	bgfx_platform_data_t pd;
 	memset(&pd, 0, sizeof(bgfx_platform_data_t));
 
+#if !__EMSCRIPTEN__
+	// x11
 	pd.ndt = state->wmi.info.x11.display;
 	pd.nwh = (void*)(uintptr_t)state->wmi.info.x11.window;
+#else
+	// web
+	pd.nwh = (void*)"#canvas";
+#endif
 
 	bgfx_init_t init = {0};
 	bgfx_init_ctor(&init);
@@ -105,7 +121,6 @@ init_window(
 		0
 	);
 	bgfx_set_view_rect(0, 0, 0, state->screen_width, state->screen_height);
-
 	bgfx_vertex_layout_begin(&state->vertex_layout, bgfx_get_renderer_type());
 	bgfx_vertex_layout_add(&state->vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
 	bgfx_vertex_layout_add(&state->vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
@@ -116,8 +131,38 @@ init_window(
 	state->index_buffer_handle = bgfx_create_dynamic_index_buffer((RODEO__MAX_VERTEX_SIZE / 4) * 6, BGFX_BUFFER_NONE);
 
 	// load shaders
-	state->vertex_shader = _Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.vertex.bin");
-	state->fragment_shader = _Rodeo__load_shader("./external/RodeoEngine/build_dir/simple.fragment.bin");
+	const char* shader_path = "???";
+	switch(bgfx_get_renderer_type()) {
+        case BGFX_RENDERER_TYPE_NOOP:
+			printf("Noop renderer error");
+			exit(EXIT_FAILURE);
+        case BGFX_RENDERER_TYPE_OPENGLES:
+			shader_path = "shaders/100_es/"; 
+			break;
+        case BGFX_RENDERER_TYPE_VULKAN:
+			shader_path = "shaders/spirv/";
+			break;
+		default:
+			printf("No shaders for selected renderer. Exiting...");
+			exit(EXIT_FAILURE);
+    }
+	const char* vertex_shader_filename = "simple.vertex.bin";
+	const char* fragment_shader_filename = "simple.fragment.bin";
+    size_t shader_length = strlen(shader_path);
+    size_t fragment_length = strlen(fragment_shader_filename);
+    size_t vertex_length = strlen(vertex_shader_filename);
+    char *fragment_path = (char *)malloc(shader_length + fragment_length);
+    char *vertex_path = (char *)malloc(shader_length + vertex_length);
+    memcpy(fragment_path, shader_path, shader_length);
+    memcpy(&fragment_path[shader_length], fragment_shader_filename, fragment_length);
+    memcpy(vertex_path, shader_path, shader_length);
+    memcpy(&vertex_path[shader_length], vertex_shader_filename, vertex_length);
+
+	fragment_path[shader_length + fragment_length] = 0;
+	vertex_path[shader_length + vertex_length] = 0;
+
+	state->vertex_shader = _Rodeo__load_shader(vertex_path);
+	state->fragment_shader = _Rodeo__load_shader(fragment_path);
 	state->program_shader = bgfx_create_program(
 		state->vertex_shader,
 		state->fragment_shader,
@@ -219,11 +264,35 @@ end(Rodeo__data_p state)
 	}
 }
 
+void
+Rodeo__\
+execute_main_loop(
+	Rodeo__data_p state,
+	Rodeo__main_loop_p main_loop_function
+)
+{
+#if __EMSCRIPTEN__
+	emscripten_set_main_loop(main_loop_function, 0, 1);
+#else
+	while(!Rodeo__should_quit(state))
+	{
+		main_loop_function();
+	}
+#endif
+}
+
 bool
 Rodeo__\
 should_quit(Rodeo__data_p state)
 {
 	return state->quit;
+}
+
+void
+Rodeo__\
+set_quit(Rodeo__data_p state, bool quit)
+{
+	state->quit = quit;
 }
 
 void
@@ -356,7 +425,7 @@ load_shader(const char* path)
 
 	if(!file)
 	{
-		printf("Error: shader file \"%s\" not found", path);
+		printf("Error: shader file \"%s\" not found\n", path);
 		return invalid;
 	}
 
@@ -369,5 +438,8 @@ load_shader(const char* path)
 	mem->data[mem->size - 1] = '\0';
 	fclose(file);
 
-	return bgfx_create_shader(mem);
+	bgfx_shader_handle_t shader = bgfx_create_shader(mem);
+	printf("Shader loaded as idx: %d\n", shader.idx);
+
+	return shader;
 }
