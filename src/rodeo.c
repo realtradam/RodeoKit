@@ -32,15 +32,28 @@ rodeo_window_init(
 	state.screen_height = screen_height;
 	state.screen_width = screen_width;
 
-	printf("SDL_Init...\n");
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Initializing SDL..."
+	);
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		rodeo_log(
+			rodeo_loglevel_error,
+			"Failed to initialize SDL. SDL_Error: %s",
+			SDL_GetError()
+		);
 		exit(EXIT_FAILURE);
 	}
-	printf("done\n");
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Success initializing SDL"
+	);
 
-	printf("SDL_CreateWindow...\n");
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Initializing SDL window..."
+	);
 	state.window = SDL_CreateWindow(
 			title,
 			SDL_WINDOWPOS_UNDEFINED,
@@ -49,15 +62,21 @@ rodeo_window_init(
 			screen_height,
 			SDL_WINDOW_SHOWN
 			);
-	printf("done\n");
-
 	if(state.window == NULL)
 	{
-		printf("Window could not be created! SDL_Error %s\n", SDL_GetError());
+		rodeo_log(
+			rodeo_loglevel_error,
+			"Failed creating SDL window. SDL_Error %s",
+			SDL_GetError()
+		);
 		exit(EXIT_FAILURE);
 	}
+
 #if !__EMSCRIPTEN__
-	printf("SDL_VERSION...\n");
+	rodeo_log(
+		rodeo_loglevel_info,
+		"SDL setting up driver specific information..."
+	);
 	SDL_VERSION(&state.wmi.version);
 	if(
 		!SDL_GetWindowWMInfo(
@@ -66,10 +85,16 @@ rodeo_window_init(
 		)
 	)
 	{
-		printf("SDL_Error %s\n", SDL_GetError());
+		rodeo_log(
+			rodeo_loglevel_error,
+			"SDL failed to get driver specific information. SDL Error: %s", SDL_GetError()
+		);
 		exit(EXIT_FAILURE);
 	}
-	printf("done\n");
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Success getting driver specific information"
+	);
 	bgfx_render_frame(-1);
 #endif
 
@@ -119,36 +144,42 @@ rodeo_window_init(
 
 	// load shaders
 	//const char* shader_path = "???";
-	rodeo_string_p shader_path = rodeo_string_create("???");
+	rodeo_string_t shader_path = rodeo_string_create("???");
 	switch(bgfx_get_renderer_type()) {
         case BGFX_RENDERER_TYPE_NOOP:
-			printf("Noop renderer error");
+			rodeo_log(
+				rodeo_loglevel_error,
+				"BGFX failed to get determine an appropriate renderer."
+			);
 			exit(EXIT_FAILURE);
         case BGFX_RENDERER_TYPE_OPENGLES:
 			rodeo_string_set(
-				shader_path,
+				&shader_path,
 				"shaders/100_es/"
 			);
 			break;
         case BGFX_RENDERER_TYPE_VULKAN:
 			rodeo_string_set(
-				shader_path,
+				&shader_path,
 				"shaders/spirv/"
 			);
 			break;
 		default:
-			printf("No shaders for selected renderer. Exiting...");
+			rodeo_log(
+				rodeo_loglevel_error,
+				"No shaders compiled for BGFX renderer chosen."
+			);
 			exit(EXIT_FAILURE);
     }
-	rodeo_string_p vertex_shader_path = rodeo_string_create("simple.vertex.bin");
-	rodeo_string_p fragment_shader_path = rodeo_string_create("simple.fragment.bin");
+	rodeo_string_t vertex_shader_path = rodeo_string_create("simple.vertex.bin");
+	rodeo_string_t fragment_shader_path = rodeo_string_create("simple.fragment.bin");
 
 	rodeo_string_prepend(
-		vertex_shader_path,
+		&vertex_shader_path,
 		shader_path
 	);
 	rodeo_string_prepend(
-		fragment_shader_path,
+		&fragment_shader_path,
 		shader_path
 	);
 
@@ -221,15 +252,15 @@ rodeo_frame_end(void)
 
 void
 rodeo_mainloop_run(
-	rodeo_mainloop_func main_loop_function
+	rodeo_mainloop_function mainloop_func
 )
 {
 #if __EMSCRIPTEN__
-	emscripten_set_main_loop(main_loop_function, 0, 1);
+	emscripten_set_main_loop(main_loop_func, 0, 1);
 #else
 	while(!rodeo_window_check_quit())
 	{
-		main_loop_function();
+		mainloop_func();
 	}
 #endif
 }
@@ -249,13 +280,13 @@ rodeo_set_quit(bool quit)
 void
 rodeo_debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
 {
-	va_list argList;
-	va_start(argList, format);
-	bgfx_dbg_text_vprintf(x, y, 0x65, format, argList);
-	va_end(argList);
+	mrodeo_vargs_do(format)
+	{
+		bgfx_dbg_text_vprintf(x, y, 0x65, format, vargs);
+	}
 }
 
-rodeo_string_p
+rodeo_string_t
 rodeo_renderer_name_get(void)
 {
 	return rodeo_string_create(bgfx_get_renderer_name(bgfx_get_renderer_type()));
@@ -359,16 +390,20 @@ rodeo_rectangle_draw(
 }
 
 bgfx_shader_handle_t
-irodeo_shader_load(const rodeo_string_p path)
+irodeo_shader_load(const rodeo_string_t path)
 {
-	const char* path_cstr = rodeo_string_to_constcstr(path);
+	const char* path_cstr = rodeo_string_to_constcstr(&path);
 	bgfx_shader_handle_t invalid = BGFX_INVALID_HANDLE;
 
 	FILE *file = fopen(path_cstr, "rb");
 
 	if(!file)
 	{
-		printf("Error: shader file \"%s\" not found\n", path_cstr);
+		rodeo_log(
+			rodeo_loglevel_error,
+			"Shader file \"%s\" not found",
+			path_cstr
+		);
 		return invalid;
 	}
 
@@ -382,7 +417,11 @@ irodeo_shader_load(const rodeo_string_p path)
 	fclose(file);
 
 	bgfx_shader_handle_t shader = bgfx_create_shader(mem);
-	printf("Shader loaded as idx: %d\n", shader.idx);
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Shader loaded with idx: %hu",
+		(uint8_t)shader.idx
+	);
 
 	return shader;
 }

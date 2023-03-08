@@ -3,6 +3,7 @@
 // system
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 typedef struct
 {
@@ -24,7 +25,7 @@ rodeo_vertex_t;
 
 typedef
 void
-(*rodeo_mainloop_func)(void);
+(*rodeo_mainloop_function)(void);
 
 typedef struct
 {
@@ -35,4 +36,28 @@ typedef struct
 }
 rodeo_rectangle_t;
 
-typedef union rodeo_string_t *rodeo_string_p;
+/// --- String ---
+
+// taken from STC library
+// must match their layout exactly as it will be cast to it.
+// (TODO should write test cases for the string funcs)
+typedef char rodeo_string_value_t;
+typedef struct { rodeo_string_value_t* data; intptr_t size, cap; } rodeo_string_buffer_t;
+typedef union {
+    struct { rodeo_string_value_t data[sizeof(rodeo_string_buffer_t) - 1]; unsigned char size; } sml;
+    struct { rodeo_string_value_t* data; size_t size, ncap; } lon;
+} rodeo_string_t;
+
+/// --- Log ---
+
+typedef enum
+{
+	rodeo_loglevel_info,
+	rodeo_loglevel_warning,
+	rodeo_loglevel_error
+}
+rodeo_loglevel_t;
+
+typedef
+void
+(*rodeo_log_function)(rodeo_string_t text);

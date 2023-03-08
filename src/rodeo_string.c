@@ -5,67 +5,68 @@
 
 // external
 #define i_implement
-#include <stc/cstr.h>
+#include "stc/cstr.h"
 
-typedef union cstr rodeo_string_t;
+// system
+#include <stdarg.h>
 
-rodeo_string_p
+rodeo_string_t
 rodeo_string_create(const char *c_string)
 {
-	cstr* result = calloc(1, sizeof(cstr));
+	cstr result = cstr_NULL;
 	if(c_string != NULL)
 	{
-		*result = cstr_from(c_string);
+		result = cstr_from(c_string);
 	}
-	return (rodeo_string_p)result;
+	return *(rodeo_string_t*)(&result);
 }
 
 void
-rodeo_string_destroy(rodeo_string_p self)
+rodeo_string_destroy(rodeo_string_t *self)
 {
 	cstr_drop((cstr*)self);
 	//free(string); // the above already calls free on the entire pointer
 }
 
 char*
-rodeo_string_to_cstr(rodeo_string_p self)
+rodeo_string_to_cstr(rodeo_string_t *self)
 {
 	return cstr_data((cstr*)self);
 }
 
 const char*
-rodeo_string_to_constcstr(rodeo_string_p self)
+rodeo_string_to_constcstr(const rodeo_string_t *self)
 {
 	return cstr_str((cstr*)self);
 }
 
 void
 rodeo_string_insert(
-	rodeo_string_p self,
-	const rodeo_string_p insert,
+	rodeo_string_t *self,
+	const rodeo_string_t insert,
 	intptr_t position
 )
 {
-	cstr_insert_s((cstr*)self, position, *(cstr*)insert);
+	cstr_insert_s((cstr*)self, position, *(cstr*)&insert);
 }
 
 void
 rodeo_string_append(
-	rodeo_string_p self,
-	const rodeo_string_p append
+	rodeo_string_t *self,
+	const rodeo_string_t append
 )
 {
 	rodeo_string_insert(
 		self,
 		append,
-		cstr_size((cstr*)self) - 1
+		cstr_size((cstr*)self)
 	);
 }
 
 void
 rodeo_string_prepend(
-	rodeo_string_p self,
-	const rodeo_string_p prepend
+	rodeo_string_t *self,
+	const rodeo_string_t prepend
 )
 {
 	rodeo_string_insert(
@@ -76,16 +77,36 @@ rodeo_string_prepend(
 }
 
 void
-rodeo_string_clear(rodeo_string_p self)
+rodeo_string_clear(rodeo_string_t *self)
 {
 	cstr_clear((cstr*)self);
 }
 
 void
-rodeo_string_set(rodeo_string_p self, char* value)
+rodeo_string_set(rodeo_string_t *self, char *value)
 {
 	cstr_clear((cstr*)self);
 	cstr *temp = (cstr*)self;
 	*temp = cstr_from(value);
+}
+
+rodeo_string_t
+rodeo_string_clone(const rodeo_string_t self)
+{
+	cstr temp = cstr_clone(*(cstr*)&self);
+	rodeo_string_t result = *(rodeo_string_t*)&temp;
+	return result;
+}
+
+rodeo_string_t
+rodeo_string_format(const char *format, ...)
+{
+	rodeo_string_t result;
+	mrodeo_vargs_do(format)
+	{
+		cstr temp = cstr_from_fmt(format, vargs);
+		result = *(rodeo_string_t*)&temp;
+	}
+	return result;
 }
 

@@ -4,4 +4,4 @@
 
 bgfx_shader_handle_t
 irodeo_\
-shader_load(const rodeo_string_p path);
+shader_load(const rodeo_string_t path);
