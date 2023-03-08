@@ -256,7 +256,7 @@ rodeo_mainloop_run(
 )
 {
 #if __EMSCRIPTEN__
-	emscripten_set_main_loop(main_loop_func, 0, 1);
+	emscripten_set_main_loop(mainloop_func, 0, 1);
 #else
 	while(!rodeo_window_check_quit())
 	{
