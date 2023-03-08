@@ -4,36 +4,35 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef
-struct
+typedef struct
 {
 	float red;
 	float green;
 	float blue;
 	float alpha;
 }
-rodeo_\
-rgba_t;
+rodeo_rgba_t;
 
-typedef
-struct
+typedef struct
 {
 	float x;
 	float y;
 	float z;
 	uint32_t abgr;
 }
-rodeo_\
-position_color_vertex_t;
-//rodeo_poscolvert_t
-
-typedef
-struct
-rodeo_data_t
-*rodeo_data_p;
+rodeo_vertex_t;
 
 typedef
 void
-(*rodeo_\
-mainloop_func)
-(void);
+(*rodeo_mainloop_func)(void);
+
+typedef struct
+{
+	float x;
+	float y;
+	float width;
+	float height;
+}
+rodeo_rectangle_t;
+
+typedef union rodeo_string_t *rodeo_string_p;

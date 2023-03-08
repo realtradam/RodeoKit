@@ -5,6 +5,7 @@
 // system
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <limits.h>
 
@@ -16,95 +17,114 @@
 		!mrodeo_macrovar(_macrovar_);					\
 		(mrodeo_macrovar(_macrovar_) += 1), end)			\
 
+/// --- Math ---
+
+uint32_t
+rodeo_rgba_to_uint32(const rodeo_rgba_t color);
+
+/// --- Core ---
+
 #define								\
 mrodeo_window_do(					\
-	state,							\
 	screen_height,					\
 	screen_width,					\
 	title							\
 )									\
 	mrodeo_defer_do(				\
 		rodeo_window_init(			\
-			&state,					\
 			screen_height,			\
 			screen_width,			\
 			title					\
 		),							\
-		rodeo_window_deinit(state)	\
+		rodeo_window_deinit()			\
 	)
 
 void
-rodeo_\
-window_init(
-	rodeo_data_p *state,
+rodeo_window_init(
 	int screen_height,
 	int screen_width,
 	char* title
 );
 
 void
-rodeo_\
-window_deinit(rodeo_data_p state);
-
-void
-rodeo_\
-deinit(void);
+rodeo_window_deinit(void);
 
 #define						\
-mrodeo_do(					\
+mrodeo_frame_do(					\
 	state					\
 )							\
 	mrodeo_defer_do(		\
-		rodeo_begin(state),	\
-		rodeo_end(state)	\
+		rodeo_frame_begin(state),	\
+		rodeo_frame_end(state)	\
 	)
 
 void
-rodeo_\
-begin(rodeo_data_p state);
+rodeo_frame_begin(void);
 
 void
-rodeo_\
-end(rodeo_data_p state);
+rodeo_frame_end(void);
 
 void
-rodeo_\
-mainloop_set(
-	rodeo_data_p state,
+rodeo_mainloop_run(
 	rodeo_mainloop_func main_loop_function
 );
 
 bool
-rodeo_\
-window_check_quit(rodeo_data_p state);
+rodeo_window_check_quit(void);
 
 void
-rodeo_\
-set_quit(rodeo_data_p state, bool quit);
+rodeo_set_quit(bool quit);
 
 void
-rodeo_\
-debug_text_draw(uint16_t x, uint16_t y, const char *format, ...);
+rodeo_debug_text_draw(uint16_t x, uint16_t y, const char *format, ...);
 
-// rodeo_renderer_name_get
-const char *
-rodeo_\
-renderer_name_get(void);
+rodeo_string_p
+rodeo_renderer_name_get(void);
 
-// rodeo_renderer_flush
 void
-rodeo_\
-renderer_flush(rodeo_data_p state);
+rodeo_renderer_flush(void);
 
-// rodeo_rectangle_draw
 void
-rodeo_\
-rectangle_draw(
-	rodeo_data_p state,
-	uint16_t x,
-	uint16_t y,
-	uint16_t width,
-	uint16_t height,
+rodeo_rectangle_draw(
+	rodeo_rectangle_t rectangle,
 	rodeo_rgba_t color
 );
 
+/// --- String ---
+
+rodeo_string_p
+rodeo_string_create(const char *c_string);
+
+void
+rodeo_string_destroy(rodeo_string_p self);
+
+char*
+rodeo_string_to_cstr(rodeo_string_p self);
+
+const char*
+rodeo_string_to_constcstr(rodeo_string_p self);
+
+void
+rodeo_string_insert(
+	rodeo_string_p self,
+	const rodeo_string_p insert,
+	intptr_t position
+);
+
+void
+rodeo_string_append(
+	rodeo_string_p self,
+	const rodeo_string_p append
+);
+
+void
+rodeo_string_prepend(
+	rodeo_string_p self,
+	const rodeo_string_p prepend
+);
+
+void
+rodeo_string_clear(rodeo_string_p self);
+
+void
+rodeo_string_set(rodeo_string_p self, char* value);

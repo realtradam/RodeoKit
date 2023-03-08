@@ -13,3 +13,6 @@
 [submodule "external/cglm"]
 	path = external/cglm
 	url = https://github.com/recp/cglm
+[submodule "external/STC"]
+	path = external/STC
+	url = https://github.com/realtradam/STC-modified

@@ -12,8 +12,7 @@
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
 
-struct
-rodeo_data_t
+typedef struct
 {
 	SDL_Window* window;
 	SDL_Surface* screen_surface;
@@ -27,11 +26,12 @@ rodeo_data_t
 	bgfx_dynamic_vertex_buffer_handle_t vertex_buffer_handle;
 	bgfx_dynamic_index_buffer_handle_t index_buffer_handle;
 	uint16_t vertex_size;
-	rodeo_position_color_vertex_t batched_vertices[RODEO__MAX_VERTEX_SIZE];
+	rodeo_vertex_t batched_vertices[mrodeo_vertex_size_max];
 	uint16_t index_count;
 	uint16_t index_size;
-	uint16_t batched_indices[(RODEO__MAX_VERTEX_SIZE / 4) * 6];
+	uint16_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
 	bgfx_shader_handle_t vertex_shader;
 	bgfx_shader_handle_t fragment_shader;
 	bgfx_program_handle_t program_shader;
-} rodeo_data_t;
+}
+irodeo_state_t;

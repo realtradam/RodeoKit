@@ -17,7 +17,7 @@ file(GLOB SOURCES
 	"src/rodeo.c"
 	"src/rodeo_math.c"
 	"src/rodeo_types.c"
-	"src/rodeo_error.c"
+	"src/rodeo_string.c"
 	)
 
 #add_library(lib src/lib.c)
@@ -94,6 +94,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 		PUBLIC external/bgfx/include
 		PUBLIC external/bx/include
 		PUBLIC external/cglm/include
+		PUBLIC external/STC/include
 		PUBLIC include
 		PRIVATE src
 		)
@@ -107,6 +108,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		PUBLIC external/bgfx/include
 		PUBLIC external/bx/include
 		PUBLIC external/cglm/include
+		PUBLIC external/STC/include
 		PUBLIC include
 		PRIVATE src
 		)

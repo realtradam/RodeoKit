@@ -1,16 +1,14 @@
 // -- internal --
 // public internal
 #include "rodeo.h"
-#include "rodeo_math.h"
 #include "rodeo_types.h"
 // private internal
-#include "private/rodeo_internal.h"
-#include "private/rodeo_internal_types.h"
-#include "private/rodeo_error.h"
+#include "rodeo_internal.h"
+#include "rodeo_internal_types.h"
 
 // -- external --
 #if __EMSCRIPTEN__
-#include <emscripten/emscripten.h>
+    #include <emscripten/emscripten.h>
 #endif
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
@@ -20,30 +18,19 @@
 //#define CGLM_CLIPSPACE_INCLUDE_ALL
 #include "cglm/cglm.h"
 
+static irodeo_state_t state = {0};
+
 void
-rodeo_\
-window_init(
-	rodeo_data_p *state_p,
+rodeo_window_init(
 	int screen_height,
 	int screen_width,
 	char* title
 )
 {
-	*state_p = (rodeo_data_p)malloc(sizeof(rodeo_data_t));
-	rodeo_data_p state = *state_p;
-	if(!state)
-	{
-		Rodeo__error_exit(
-			RODEO__ERROR__UNINITIALIZED_STATE,
-			__func__,
-			__LINE__,
-			"Malloc failed to initialize state."
-		);
-	}
-	state->window = NULL;
-	state->screen_surface = NULL;
-	state->screen_height = screen_height;
-	state->screen_width = screen_width;
+	state.window = NULL;
+	state.screen_surface = NULL;
+	state.screen_height = screen_height;
+	state.screen_width = screen_width;
 
 	printf("SDL_Init...\n");
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -54,7 +41,7 @@ window_init(
 	printf("done\n");
 
 	printf("SDL_CreateWindow...\n");
-	state->window = SDL_CreateWindow(
+	state.window = SDL_CreateWindow(
 			title,
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
@@ -64,18 +51,18 @@ window_init(
 			);
 	printf("done\n");
 
-	if(state->window == NULL)
+	if(state.window == NULL)
 	{
 		printf("Window could not be created! SDL_Error %s\n", SDL_GetError());
 		exit(EXIT_FAILURE);
 	}
 #if !__EMSCRIPTEN__
 	printf("SDL_VERSION...\n");
-	SDL_VERSION(&state->wmi.version);
+	SDL_VERSION(&state.wmi.version);
 	if(
 		!SDL_GetWindowWMInfo(
-			state->window,
-			&state->wmi  
+			state.window,
+			&state.wmi  
 		)
 	)
 	{
@@ -92,8 +79,8 @@ window_init(
 
 #if !__EMSCRIPTEN__
 	// x11
-	pd.ndt = state->wmi.info.x11.display;
-	pd.nwh = (void*)(uintptr_t)state->wmi.info.x11.window;
+	pd.ndt = state.wmi.info.x11.display;
+	pd.nwh = (void*)(uintptr_t)state.wmi.info.x11.window;
 #else
 	// web
 	pd.nwh = (void*)"#canvas";
@@ -103,8 +90,8 @@ window_init(
 	bgfx_init_ctor(&init);
 	init.type = BGFX_RENDERER_TYPE_COUNT; // auto determine renderer
 	//init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
-	init.resolution.width = state->screen_width;
-	init.resolution.height = state->screen_height;
+	init.resolution.width = state.screen_width;
+	init.resolution.height = state.screen_height;
 	init.resolution.reset = BGFX_RESET_VSYNC;
 	init.platformData = pd;
 	bgfx_init(&init);
@@ -120,96 +107,74 @@ window_init(
 		1.0f,
 		0
 	);
-	bgfx_set_view_rect(0, 0, 0, state->screen_width, state->screen_height);
-	bgfx_vertex_layout_begin(&state->vertex_layout, bgfx_get_renderer_type());
-	bgfx_vertex_layout_add(&state->vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
-	bgfx_vertex_layout_add(&state->vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
-	bgfx_vertex_layout_end(&state->vertex_layout);
+	bgfx_set_view_rect(0, 0, 0, state.screen_width, state.screen_height);
+	bgfx_vertex_layout_begin(&state.vertex_layout, bgfx_get_renderer_type());
+	bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+	bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
+	bgfx_vertex_layout_end(&state.vertex_layout);
 
-	state->vertex_buffer_handle = bgfx_create_dynamic_vertex_buffer(RODEO__MAX_VERTEX_SIZE, &state->vertex_layout, BGFX_BUFFER_NONE);
+	state.vertex_buffer_handle = bgfx_create_dynamic_vertex_buffer(mrodeo_vertex_size_max, &state.vertex_layout, BGFX_BUFFER_NONE);
 
-	state->index_buffer_handle = bgfx_create_dynamic_index_buffer((RODEO__MAX_VERTEX_SIZE / 4) * 6, BGFX_BUFFER_NONE);
+	state.index_buffer_handle = bgfx_create_dynamic_index_buffer((mrodeo_vertex_size_max / 4) * 6, BGFX_BUFFER_NONE);
 
 	// load shaders
-	const char* shader_path = "???";
+	//const char* shader_path = "???";
+	rodeo_string_p shader_path = rodeo_string_create("???");
 	switch(bgfx_get_renderer_type()) {
         case BGFX_RENDERER_TYPE_NOOP:
 			printf("Noop renderer error");
 			exit(EXIT_FAILURE);
         case BGFX_RENDERER_TYPE_OPENGLES:
-			shader_path = "shaders/100_es/"; 
+			rodeo_string_set(
+				shader_path,
+				"shaders/100_es/"
+			);
 			break;
         case BGFX_RENDERER_TYPE_VULKAN:
-			shader_path = "shaders/spirv/";
+			rodeo_string_set(
+				shader_path,
+				"shaders/spirv/"
+			);
 			break;
 		default:
 			printf("No shaders for selected renderer. Exiting...");
 			exit(EXIT_FAILURE);
     }
-	const char* vertex_shader_filename = "simple.vertex.bin";
-	const char* fragment_shader_filename = "simple.fragment.bin";
-    size_t shader_length = strlen(shader_path);
-    size_t fragment_length = strlen(fragment_shader_filename);
-    size_t vertex_length = strlen(vertex_shader_filename);
-    char *fragment_path = (char *)malloc(shader_length + fragment_length);
-    char *vertex_path = (char *)malloc(shader_length + vertex_length);
-    memcpy(fragment_path, shader_path, shader_length);
-    memcpy(&fragment_path[shader_length], fragment_shader_filename, fragment_length);
-    memcpy(vertex_path, shader_path, shader_length);
-    memcpy(&vertex_path[shader_length], vertex_shader_filename, vertex_length);
+	rodeo_string_p vertex_shader_path = rodeo_string_create("simple.vertex.bin");
+	rodeo_string_p fragment_shader_path = rodeo_string_create("simple.fragment.bin");
 
-	fragment_path[shader_length + fragment_length] = 0;
-	vertex_path[shader_length + vertex_length] = 0;
+	rodeo_string_prepend(
+		vertex_shader_path,
+		shader_path
+	);
+	rodeo_string_prepend(
+		fragment_shader_path,
+		shader_path
+	);
 
-	state->vertex_shader = irodeo_shader_load(vertex_path);
-	state->fragment_shader = irodeo_shader_load(fragment_path);
-	state->program_shader = bgfx_create_program(
-		state->vertex_shader,
-		state->fragment_shader,
+	state.vertex_shader = irodeo_shader_load(vertex_shader_path);
+	state.fragment_shader = irodeo_shader_load(fragment_shader_path);
+	state.program_shader = bgfx_create_program(
+		state.vertex_shader,
+		state.fragment_shader,
 		true
 	);
 }
 
 void
-rodeo_\
-window_deinit(rodeo_data_p state)
+rodeo_window_deinit(void)
 {
-	if(!state)
-	{
-		Rodeo__error_exit(
-			RODEO__ERROR__UNINITIALIZED_STATE,
-			__func__,
-			__LINE__,
-			RODEO__EMPTY_ERROR_MESSAGE  
-		);
-	}
-	bgfx_destroy_dynamic_index_buffer(state->index_buffer_handle);
-	bgfx_destroy_dynamic_vertex_buffer(state->vertex_buffer_handle);
-	bgfx_destroy_program(state->program_shader);
+	bgfx_destroy_dynamic_index_buffer(state.index_buffer_handle);
+	bgfx_destroy_dynamic_vertex_buffer(state.vertex_buffer_handle);
+	bgfx_destroy_program(state.program_shader);
 	bgfx_shutdown();
-	SDL_DestroyWindow(state->window);
-}
-
-void
-rodeo_\
-deinit(void)
-{
+	SDL_DestroyWindow(state.window);
 	SDL_Quit();
 }
 
 void
-rodeo_\
-begin(rodeo_data_p state)
+rodeo_frame_begin(void)
 {
-	if(!state)
-	{
-		Rodeo__error_exit(
-			RODEO__ERROR__UNINITIALIZED_STATE,
-			__func__,
-			__LINE__,
-			RODEO__EMPTY_ERROR_MESSAGE  
-		);
-	}
 	//vec3 eye = {0.0f, 0.0f, -35.0f};
 	//vec3 center = {0.0f, 0.0f, 0.0f};
 	//vec3 up = {0, 1, 0};
@@ -224,8 +189,8 @@ begin(rodeo_data_p state)
 	// but 'no' is incorrect
 	glm_ortho_rh_zo( 
 		0,
-		state->screen_width,
-		state->screen_height,
+		state.screen_width,
+		state.screen_height,
 		0,
 		// near
 		-0.1f,
@@ -234,47 +199,35 @@ begin(rodeo_data_p state)
 		proj
 	);
 	bgfx_set_view_transform(0, view, proj);
-	bgfx_set_view_rect(0, 0, 0, state->screen_width, state->screen_height);
+	bgfx_set_view_rect(0, 0, 0, state.screen_width, state.screen_height);
 	bgfx_touch(0);
 }
 
 void
-rodeo_\
-end(rodeo_data_p state)
+rodeo_frame_end(void)
 {
-	if(!state)
-	{
-		Rodeo__error_exit(
-			RODEO__ERROR__UNINITIALIZED_STATE,
-			__func__,
-			__LINE__,
-			RODEO__EMPTY_ERROR_MESSAGE  
-		);
-	}
-	rodeo_renderer_flush(state);
+	rodeo_renderer_flush();
 
 	bgfx_frame(false);
 
-	while(SDL_PollEvent(&state->sdl_event))
+	while(SDL_PollEvent(&state.sdl_event))
 	{
-		if(state->sdl_event.type == SDL_QUIT)
+		if(state.sdl_event.type == SDL_QUIT)
 		{
-			state->quit = true;
+			state.quit = true;
 		}
 	}
 }
 
 void
-rodeo_\
-mainloop_set(
-	rodeo_data_p state,
+rodeo_mainloop_run(
 	rodeo_mainloop_func main_loop_function
 )
 {
 #if __EMSCRIPTEN__
 	emscripten_set_main_loop(main_loop_function, 0, 1);
 #else
-	while(!rodeo_window_check_quit(state))
+	while(!rodeo_window_check_quit())
 	{
 		main_loop_function();
 	}
@@ -282,22 +235,19 @@ mainloop_set(
 }
 
 bool
-rodeo_\
-window_check_quit(rodeo_data_p state)
+rodeo_window_check_quit(void)
 {
-	return state->quit;
+	return state.quit;
 }
 
 void
-rodeo_\
-set_quit(rodeo_data_p state, bool quit)
+rodeo_set_quit(bool quit)
 {
-	state->quit = quit;
+	state.quit = quit;
 }
 
 void
-rodeo_\
-debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
+rodeo_debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
 {
 	va_list argList;
 	va_start(argList, format);
@@ -305,28 +255,26 @@ debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
 	va_end(argList);
 }
 
-const char *
-rodeo_\
-renderer_name_get(void)
+rodeo_string_p
+rodeo_renderer_name_get(void)
 {
-	return bgfx_get_renderer_name(bgfx_get_renderer_type());
+	return rodeo_string_create(bgfx_get_renderer_name(bgfx_get_renderer_type()));
 }
 
 void
-rodeo_\
-renderer_flush(rodeo_data_p state)
+rodeo_renderer_flush(void)
 {
-	if(state->vertex_size > 0)
+	if(state.vertex_size > 0)
 	{
 		// upload remaining batched vertices
-		bgfx_set_dynamic_vertex_buffer(0, state->vertex_buffer_handle, 0, state->vertex_size);
-		const bgfx_memory_t* vbm = bgfx_copy(state->batched_vertices, sizeof(rodeo_position_color_vertex_t) * state->vertex_size);
-		bgfx_update_dynamic_vertex_buffer(state->vertex_buffer_handle,  0, vbm);
+		bgfx_set_dynamic_vertex_buffer(0, state.vertex_buffer_handle, 0, state.vertex_size);
+		const bgfx_memory_t* vbm = bgfx_copy(state.batched_vertices, sizeof(rodeo_vertex_t) * state.vertex_size);
+		bgfx_update_dynamic_vertex_buffer(state.vertex_buffer_handle,  0, vbm);
 
 		// upload remaining batched indices
-		bgfx_set_dynamic_index_buffer(state->index_buffer_handle, 0, state->index_size);
-		const bgfx_memory_t* ibm = bgfx_copy(state->batched_indices, sizeof(uint16_t) * state->index_size);
-		bgfx_update_dynamic_index_buffer(state->index_buffer_handle, 0, ibm);
+		bgfx_set_dynamic_index_buffer(state.index_buffer_handle, 0, state.index_size);
+		const bgfx_memory_t* ibm = bgfx_copy(state.batched_indices, sizeof(uint16_t) * state.index_size);
+		bgfx_update_dynamic_index_buffer(state.index_buffer_handle, 0, ibm);
 
 		bgfx_set_state(
 			BGFX_STATE_CULL_CW |
@@ -339,53 +287,48 @@ renderer_flush(rodeo_data_p state)
 		);
 
 		// submit vertices & batches
-		bgfx_submit(0, state->program_shader, 0, BGFX_DISCARD_ALL);
+		bgfx_submit(0, state.program_shader, 0, BGFX_DISCARD_ALL);
 
 		// reset arrays
-		state->vertex_size = 0;
-		state->index_size = 0;
-		state->index_count = 0;
+		state.vertex_size = 0;
+		state.index_size = 0;
+		state.index_count = 0;
 	}
 }
 
 void
-rodeo_\
-rectangle_draw(
-	rodeo_data_p state,
-	u_int16_t x,
-	u_int16_t y,
-	u_int16_t width,
-	u_int16_t height,
+rodeo_rectangle_draw(
+	rodeo_rectangle_t rectangle,
 	rodeo_rgba_t color
 )
 {
-	const uint32_t abgr = Rodeo__Math__color_rgba_to_uint32(color);
-	if(state->vertex_size < RODEO__MAX_VERTEX_SIZE)
+	const uint32_t abgr = rodeo_rgba_to_uint32(color);
+	if(state.vertex_size < mrodeo_vertex_size_max)
 	{
-		state->batched_vertices[state->vertex_size] =
-			(rodeo_position_color_vertex_t)
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
 			{
-				(float)width + (float)x, (float)height + (float)y, 0.0f, abgr
+				rectangle.width + rectangle.x, rectangle.height + rectangle.y, 0.0f, abgr
 			};
-		state->vertex_size += 1;
-		state->batched_vertices[state->vertex_size] =
-			(rodeo_position_color_vertex_t)
+		state.vertex_size += 1;
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
 			{
-				(float)width + (float)x, (float)y, 0.0f, abgr
+				rectangle.width + rectangle.x, rectangle.y, 0.0f, abgr
 			};
-		state->vertex_size += 1;
-		state->batched_vertices[state->vertex_size] =
-			(rodeo_position_color_vertex_t)
+		state.vertex_size += 1;
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
 			{
-				(float)x, (float)y, 0.0f, abgr
+				rectangle.x, rectangle.y, 0.0f, abgr
 			};
-		state->vertex_size += 1;
-		state->batched_vertices[state->vertex_size] =
-			(rodeo_position_color_vertex_t)
+		state.vertex_size += 1;
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
 			{
-				(float)x, (float)height + (float)y, 0.0f, abgr
+				rectangle.x, rectangle.height + rectangle.y, 0.0f, abgr
 			};
-		state->vertex_size += 1;
+		state.vertex_size += 1;
 
 		int indices[] =
 		{
@@ -394,43 +337,43 @@ rectangle_draw(
 			//2, 1, 0,
 			//2, 3, 1
 		};
-		state->batched_indices[state->index_size] = state->index_count + indices[0];
-		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + indices[1];
-		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + indices[2];
-		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + indices[3];
-		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + indices[4];
-		state->index_size += 1;
-		state->batched_indices[state->index_size] = state->index_count + indices[5];
-		state->index_size += 1;
-		state->index_count += 4;
+		state.batched_indices[state.index_size] = state.index_count + indices[0];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[1];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[2];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[3];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[4];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[5];
+		state.index_size += 1;
+		state.index_count += 4;
 	}
 
-	if(state->vertex_size >= RODEO__MAX_VERTEX_SIZE)
+	if(state.vertex_size >= mrodeo_vertex_size_max)
 	{
-		rodeo_renderer_flush(state);
+		rodeo_renderer_flush();
 	}
 }
 
 bgfx_shader_handle_t
-irodeo_\
-shader_load(const char* path)
+irodeo_shader_load(const rodeo_string_p path)
 {
+	const char* path_cstr = rodeo_string_to_constcstr(path);
 	bgfx_shader_handle_t invalid = BGFX_INVALID_HANDLE;
 
-	FILE *file = fopen(path, "rb");
+	FILE *file = fopen(path_cstr, "rb");
 
 	if(!file)
 	{
-		printf("Error: shader file \"%s\" not found\n", path);
+		printf("Error: shader file \"%s\" not found\n", path_cstr);
 		return invalid;
 	}
 
 	fseek(file, 0, SEEK_END);
-	long file_size = ftell(file);
+	int64_t file_size = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
 	const bgfx_memory_t *mem = bgfx_alloc(file_size + 1);

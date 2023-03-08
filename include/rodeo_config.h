@@ -1,2 +1,4 @@
 
-#define RODEO__MAX_VERTEX_SIZE 8192
+#ifndef mrodeo_vertex_size_max
+    #define mrodeo_vertex_size_max 8192
+#endif
