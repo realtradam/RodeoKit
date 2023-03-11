@@ -18,6 +18,9 @@
 //#define CGLM_CLIPSPACE_INCLUDE_ALL
 #include "cglm/cglm.h"
 
+// -- system --
+#include <time.h>
+
 static irodeo_state_t state = {0};
 
 void
@@ -31,6 +34,7 @@ rodeo_window_init(
 	state.screen_surface = NULL;
 	state.screen_height = screen_height;
 	state.screen_width = screen_width;
+	state.frame_count = 0;
 
 	rodeo_log(
 		rodeo_loglevel_info,
@@ -66,11 +70,15 @@ rodeo_window_init(
 	{
 		rodeo_log(
 			rodeo_loglevel_error,
-			"Failed creating SDL window. SDL_Error %s",
+			"Failed creating SDL window. SDL_Error: %s",
 			SDL_GetError()
 		);
 		exit(EXIT_FAILURE);
 	}
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Success initializing SDL window"
+	);
 
 #if !__EMSCRIPTEN__
 	rodeo_log(
@@ -117,7 +125,7 @@ rodeo_window_init(
 	//init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
 	init.resolution.width = state.screen_width;
 	init.resolution.height = state.screen_height;
-	init.resolution.reset = BGFX_RESET_VSYNC;
+	//init.resolution.reset = BGFX_RESET_VSYNC;
 	init.platformData = pd;
 	bgfx_init(&init);
 
@@ -190,6 +198,7 @@ rodeo_window_init(
 		state.fragment_shader,
 		true
 	);
+	state.end_frame = SDL_GetPerformanceCounter();
 }
 
 void
@@ -232,6 +241,7 @@ rodeo_frame_begin(void)
 	bgfx_set_view_transform(0, view, proj);
 	bgfx_set_view_rect(0, 0, 0, state.screen_width, state.screen_height);
 	bgfx_touch(0);
+	state.start_frame = state.end_frame;
 }
 
 void
@@ -248,6 +258,12 @@ rodeo_frame_end(void)
 			state.quit = true;
 		}
 	}
+	#ifndef __EMSCRIPTEN__
+		irodeo_frame_stall();
+	#endif
+	state.frame_count += 1;
+	state.end_frame = SDL_GetPerformanceCounter();
+	state.frame_time = ((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
 }
 
 void
@@ -255,14 +271,14 @@ rodeo_mainloop_run(
 	rodeo_mainloop_function mainloop_func
 )
 {
-#if __EMSCRIPTEN__
-	emscripten_set_main_loop(mainloop_func, 0, 1);
-#else
-	while(!rodeo_window_check_quit())
-	{
-		mainloop_func();
-	}
-#endif
+	#if __EMSCRIPTEN__
+		emscripten_set_main_loop(mainloop_func, 0, 1);
+	#else
+		while(!rodeo_window_check_quit())
+		{ 
+			mainloop_func();
+		} 
+	#endif
 }
 
 bool
@@ -425,3 +441,95 @@ irodeo_shader_load(const rodeo_string_t path)
 
 	return shader;
 }
+
+uint64_t
+rodeo_frame_count_get(void)
+{
+	return state.frame_count;
+}
+
+float
+rodeo_frame_time_get(void)
+{
+	return state.frame_time;
+}
+
+float
+rodeo_frame_persecond_get(void)
+{
+	return 1.0f / (state.frame_time / 1000.0f);
+}
+
+void
+rodeo_frame_limit_set(uint32_t limit)
+{
+	#ifdef __EMSCRIPTEN__
+		rodeo_log(
+			rodeo_loglevel_warning,
+			"Framerate limit cannot be set on web platform. Limit is enforced by platform to 60fps"
+		);
+	#else
+		state.target_framerate = limit;
+	#endif
+}
+
+uint32_t
+rodeo_frame_limit_get(void)
+{
+	#ifdef __EMSCRIPTEN__
+		return 60;
+	#else
+		return state.target_framerate;
+	#endif
+}
+
+float
+irodeo_frame_remaining_get(void)
+{
+	#ifdef __EMSCRIPTEN__
+		float target = 60.0f;
+	#else
+		float target = (float)rodeo_frame_limit_get();
+	#endif
+
+	float result = (1/target * 1000.0f) - ((float)(SDL_GetPerformanceCounter() - state.start_frame) / (float)SDL_GetPerformanceFrequency() * 1000.0f);
+
+	return result;
+}
+
+// used internally at the end of every frame to fill for time
+// in order to reach the desired framerate
+void
+irodeo_frame_stall(void)
+{
+	if(rodeo_frame_limit_get() == 0)
+	{
+		return;
+	}
+	float stall_time = irodeo_frame_remaining_get();
+		printf(
+			"%.001f time left of stall\n",
+			stall_time
+		);
+	if(stall_time > 0.0005)
+	{
+		SDL_Delay(stall_time * 0.9995);
+	}
+
+	stall_time = irodeo_frame_remaining_get();
+
+	while(stall_time > 0.0005) {
+		stall_time = irodeo_frame_remaining_get();
+		printf(
+			"%.001f time left of stall\n",
+			stall_time
+		);
+		//rodeo_log(
+		//	rodeo_loglevel_info,
+		//	"%.001f time left of stall",
+		//	stall_time
+		//);
+	}
+	printf("frame complete\n");
+}
+

@@ -19,6 +19,7 @@ file(GLOB SOURCES
 	"src/rodeo_types.c"
 	"src/rodeo_string.c"
 	"src/rodeo_log.c"
+	"src/rodeo_input.c"
 	)
 
 #add_library(lib src/lib.c)

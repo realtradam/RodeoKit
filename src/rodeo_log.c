@@ -16,6 +16,8 @@ rodeo_log(
 	mrodeo_vargs_do(format)
 	{
 		formatted = rodeo_string_format(format, vargs);
+		printf("%s\n", rodeo_string_to_cstr(&formatted));
+		printf(rodeo_string_to_cstr(&formatted));
 	}
 
 	switch(loglevel)

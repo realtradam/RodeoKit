@@ -33,5 +33,11 @@ typedef struct
 	bgfx_shader_handle_t vertex_shader;
 	bgfx_shader_handle_t fragment_shader;
 	bgfx_program_handle_t program_shader;
+
+	uint64_t frame_count;
+	uint64_t start_frame;
+	uint64_t end_frame;
+	float frame_time;
+	uint32_t target_framerate;
 }
 irodeo_state_t;

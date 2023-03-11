@@ -11,12 +11,15 @@
 #include <limits.h>
 
 #define mrodeo_name_concat(prefix, suffix) prefix##suffix
+
 #define mrodeo_macrovar(prefix) mrodeo_name_concat(prefix##_, __LINE__)
 
-#define mrodeo_defer_do(start, end) for(				\
+#define mrodeo_defer_do(start, end)						\
+	for(												\
 		int mrodeo_macrovar(_macrovar_) = (start, 0);	\
 		!mrodeo_macrovar(_macrovar_);					\
-		(mrodeo_macrovar(_macrovar_) += 1), end)		\
+		(mrodeo_macrovar(_macrovar_) += 1), end			\
+	)													\
 
 #define								\
 mrodeo_vargs_do(final_arg)			\
@@ -45,7 +48,7 @@ mrodeo_window_do(					\
 			screen_width,			\
 			title					\
 		),							\
-		rodeo_window_deinit()			\
+		rodeo_window_deinit()		\
 	)
 
 void
@@ -58,13 +61,13 @@ rodeo_window_init(
 void
 rodeo_window_deinit(void);
 
-#define						\
+#define								\
 mrodeo_frame_do(					\
-	state					\
-)							\
-	mrodeo_defer_do(		\
+	state							\
+)									\
+	mrodeo_defer_do(				\
 		rodeo_frame_begin(state),	\
-		rodeo_frame_end(state)	\
+		rodeo_frame_end(state)		\
 	)
 
 void
@@ -152,3 +155,25 @@ rodeo_log(
 	const char *format,
 	...
 );
+
+/// --- Framerate ---
+
+uint64_t
+rodeo_frame_count_get(void);
+
+float
+rodeo_frame_time_get(void);
+
+float
+rodeo_frame_persecond_get(void);
+
+void
+rodeo_frame_limit_set(uint32_t limit);
+
+/// --- Input ---
+
+int32_t
+rodeo_input_mouse_x_get(void);
+
+int32_t
+rodeo_input_mouse_y_get(void);
