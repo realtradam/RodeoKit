@@ -6,10 +6,13 @@
 // external
 #define i_implement
 #include "stc/cstr.h"
+#include "SDL2/SDL.h"
 
 // system
 #include <stdarg.h>
 
+// TODO: the create and destroy functions arent actually used together.
+// one is a pointer and the other isnt
 rodeo_string_t
 rodeo_string_create(const char *c_string)
 {
@@ -104,9 +107,17 @@ rodeo_string_format(const char *format, ...)
 	rodeo_string_t result;
 	mrodeo_vargs_do(format)
 	{
-		cstr temp = cstr_from_fmt(format, vargs);
+		cstr temp = cstr_from_vfmt(format, vargs);
 		result = *(rodeo_string_t*)&temp;
 	}
+	return result;
+}
+
+rodeo_string_t
+rodeo_string_vargs_format(const char *format, va_list vargs)
+{
+	cstr temp = cstr_from_vfmt(format, vargs);
+	rodeo_string_t result = *(rodeo_string_t*)&temp;
 	return result;
 }
 

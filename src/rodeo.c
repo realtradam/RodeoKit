@@ -125,7 +125,7 @@ rodeo_window_init(
 	//init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
 	init.resolution.width = state.screen_width;
 	init.resolution.height = state.screen_height;
-	//init.resolution.reset = BGFX_RESET_VSYNC;
+	init.resolution.reset = BGFX_RESET_VSYNC;
 	init.platformData = pd;
 	bgfx_init(&init);
 
@@ -151,7 +151,6 @@ rodeo_window_init(
 	state.index_buffer_handle = bgfx_create_dynamic_index_buffer((mrodeo_vertex_size_max / 4) * 6, BGFX_BUFFER_NONE);
 
 	// load shaders
-	//const char* shader_path = "???";
 	rodeo_string_t shader_path = rodeo_string_create("???");
 	switch(bgfx_get_renderer_type()) {
         case BGFX_RENDERER_TYPE_NOOP:
@@ -175,7 +174,7 @@ rodeo_window_init(
 		default:
 			rodeo_log(
 				rodeo_loglevel_error,
-				"No shaders compiled for BGFX renderer chosen."
+				"No shaders implemented for BGFX renderer chosen."
 			);
 			exit(EXIT_FAILURE);
     }
@@ -435,8 +434,8 @@ irodeo_shader_load(const rodeo_string_t path)
 	bgfx_shader_handle_t shader = bgfx_create_shader(mem);
 	rodeo_log(
 		rodeo_loglevel_info,
-		"Shader loaded with idx: %hu",
-		(uint8_t)shader.idx
+		"Shader loaded with idx: %"PRIu8"",
+		shader.idx
 	);
 
 	return shader;
@@ -457,7 +456,7 @@ rodeo_frame_time_get(void)
 float
 rodeo_frame_persecond_get(void)
 {
-	return 1.0f / (state.frame_time / 1000.0f);
+	return 1.0f / (rodeo_frame_time_get() / 1000.0f);
 }
 
 void
@@ -469,7 +468,7 @@ rodeo_frame_limit_set(uint32_t limit)
 			"Framerate limit cannot be set on web platform. Limit is enforced by platform to 60fps"
 		);
 	#else
-		state.target_framerate = limit;
+		state.frame_limit = limit;
 	#endif
 }
 
@@ -479,10 +478,13 @@ rodeo_frame_limit_get(void)
 	#ifdef __EMSCRIPTEN__
 		return 60;
 	#else
-		return state.target_framerate;
+		return state.frame_limit;
 	#endif
 }
 
+// measures how much time there is left in the remaining frame until
+// the frame target time is reached. If we surpassed the target time
+// then this will be negative
 float
 irodeo_frame_remaining_get(void)
 {
@@ -502,34 +504,24 @@ irodeo_frame_remaining_get(void)
 void
 irodeo_frame_stall(void)
 {
+	// if no frame limit then run as fast as possible
 	if(rodeo_frame_limit_get() == 0)
 	{
 		return;
 	}
+
+	// sleep isnt perfectly accurate so we sleep for a slightly shorter
+	// amount of time
 	float stall_time = irodeo_frame_remaining_get();
-		printf(
-			"%.001f time left of stall\n",
-			stall_time
-		);
 	if(stall_time > 0.0005)
 	{
 		SDL_Delay(stall_time * 0.9995);
 	}
 
+	// then we spinlock for the small remaining amount of time
 	stall_time = irodeo_frame_remaining_get();
-
 	while(stall_time > 0.0005) {
 		stall_time = irodeo_frame_remaining_get();
-		printf(
-			"%.001f time left of stall\n",
-			stall_time
-		);
-		//rodeo_log(
-		//	rodeo_loglevel_info,
-		//	"%.001f time left of stall",
-		//	stall_time
-		//);
 	}
-	printf("frame complete\n");
 }
 

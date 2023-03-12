@@ -147,6 +147,9 @@ rodeo_string_clone(const rodeo_string_t self);
 rodeo_string_t
 rodeo_string_format(const char *format, ...);
 
+rodeo_string_t
+rodeo_string_vargs_format(const char *format, va_list vargs);
+
 /// --- Log ---
 
 void
@@ -169,6 +172,9 @@ rodeo_frame_persecond_get(void);
 
 void
 rodeo_frame_limit_set(uint32_t limit);
+
+uint32_t
+rodeo_frame_limit_get(void);
 
 /// --- Input ---
 

@@ -38,6 +38,6 @@ typedef struct
 	uint64_t start_frame;
 	uint64_t end_frame;
 	float frame_time;
-	uint32_t target_framerate;
+	uint32_t frame_limit;
 }
 irodeo_state_t;

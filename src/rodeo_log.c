@@ -1,7 +1,10 @@
 
-// public external
+// public internal
 #include "rodeo_types.h"
 #include "rodeo.h"
+
+// external
+#include "SDL2/SDL.h"
 
 static rodeo_log_function logging_function = NULL;
 
@@ -15,9 +18,7 @@ rodeo_log(
 	rodeo_string_t formatted;
 	mrodeo_vargs_do(format)
 	{
-		formatted = rodeo_string_format(format, vargs);
-		printf("%s\n", rodeo_string_to_cstr(&formatted));
-		printf(rodeo_string_to_cstr(&formatted));
+		formatted = rodeo_string_vargs_format(format, vargs);
 	}
 
 	switch(loglevel)
@@ -48,7 +49,7 @@ rodeo_log(
 
 	if(logging_function == NULL)
 	{
-		printf("%s", rodeo_string_to_constcstr(&formatted)); 
+		printf("%s", rodeo_string_to_constcstr(&formatted));
 	}
 	else
 	{
