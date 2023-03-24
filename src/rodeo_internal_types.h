@@ -1,12 +1,13 @@
 #pragma once
 
-// public internal
+// -- internal --
+// public
 #include "rodeo_config.h"
 #include "rodeo_types.h"
 
-// system
+// -- system --
 #if __EMSCRIPTEN__
-#include <emscripten/emscripten.h>
+	#include <emscripten/emscripten.h>
 #endif
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_syswm.h"
@@ -30,6 +31,7 @@ typedef struct
 	uint16_t index_count;
 	uint16_t index_size;
 	uint16_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
+	uint16_t active_texture_id;
 	bgfx_shader_handle_t vertex_shader;
 	bgfx_shader_handle_t fragment_shader;
 	bgfx_program_handle_t program_shader;

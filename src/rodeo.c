@@ -1,8 +1,8 @@
 // -- internal --
-// public internal
+// public
 #include "rodeo.h"
 #include "rodeo_types.h"
-// private internal
+// private
 #include "rodeo_internal.h"
 #include "rodeo_internal_types.h"
 
@@ -20,6 +20,18 @@
 
 // -- system --
 #include <time.h>
+
+bgfx_texture_handle_t
+rodeo_texture_2d_create_default(void);
+
+static const unsigned char defaultTxData[] = 
+{
+	0xff, 0xff, 0xff, 0xff // 1x1 WHITE dot
+};
+
+static bgfx_texture_handle_t texture;
+static bgfx_uniform_handle_t sampler;
+
 
 static irodeo_state_t state = {0};
 
@@ -141,10 +153,15 @@ rodeo_window_init(
 		0
 	);
 	bgfx_set_view_rect(0, 0, 0, state.screen_width, state.screen_height);
-	bgfx_vertex_layout_begin(&state.vertex_layout, bgfx_get_renderer_type());
-	bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
-	bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
-	bgfx_vertex_layout_end(&state.vertex_layout);
+
+	rodeo_log(rodeo_loglevel_info, "Setting up default render pipeline...");
+	// set up vertex layout
+	mrodeo_bgfx_vertex_layout_do(&state.vertex_layout)
+	{
+		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
+		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, true, false);
+	}
 
 	state.vertex_buffer_handle = bgfx_create_dynamic_vertex_buffer(mrodeo_vertex_size_max, &state.vertex_layout, BGFX_BUFFER_NONE);
 
@@ -156,7 +173,7 @@ rodeo_window_init(
         case BGFX_RENDERER_TYPE_NOOP:
 			rodeo_log(
 				rodeo_loglevel_error,
-				"BGFX failed to get determine an appropriate renderer."
+				"BGFX failed to get determine an appropriate renderer"
 			);
 			exit(EXIT_FAILURE);
         case BGFX_RENDERER_TYPE_OPENGLES:
@@ -174,7 +191,7 @@ rodeo_window_init(
 		default:
 			rodeo_log(
 				rodeo_loglevel_error,
-				"No shaders implemented for BGFX renderer chosen."
+				"No shaders implemented for BGFX renderer chosen"
 			);
 			exit(EXIT_FAILURE);
     }
@@ -197,6 +214,17 @@ rodeo_window_init(
 		state.fragment_shader,
 		true
 	);
+	rodeo_log(
+		rodeo_loglevel_info,
+		"Default render pipeline finished setup"
+	);
+
+	//bgfx_texture_handle_t default_texture = rodeo_texture_2d_create_default();
+
+	sampler = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+
+	rodeo_texture_2d_create_default();
+
 	state.end_frame = SDL_GetPerformanceCounter();
 }
 
@@ -310,6 +338,7 @@ rodeo_renderer_name_get(void)
 void
 rodeo_renderer_flush(void)
 {
+	bgfx_set_texture(0, sampler, texture, UINT32_MAX);
 	if(state.vertex_size > 0)
 	{
 		// upload remaining batched vertices
@@ -354,25 +383,37 @@ rodeo_rectangle_draw(
 		state.batched_vertices[state.vertex_size] =
 			(rodeo_vertex_t)
 			{
-				rectangle.width + rectangle.x, rectangle.height + rectangle.y, 0.0f, abgr
+				.x = rectangle.width + rectangle.x,
+				.y = rectangle.height + rectangle.y,
+				//.z = 0.0f,
+				.abgr = abgr
 			};
 		state.vertex_size += 1;
 		state.batched_vertices[state.vertex_size] =
 			(rodeo_vertex_t)
 			{
-				rectangle.width + rectangle.x, rectangle.y, 0.0f, abgr
+				.x = rectangle.width + rectangle.x,
+				.y = rectangle.y,
+				//.z = 0.0f,
+				.abgr = abgr
 			};
 		state.vertex_size += 1;
 		state.batched_vertices[state.vertex_size] =
 			(rodeo_vertex_t)
 			{
-				rectangle.x, rectangle.y, 0.0f, abgr
+				.x = rectangle.x,
+				.y = rectangle.y,
+				//.z = 0.0f,
+				.abgr = abgr
 			};
 		state.vertex_size += 1;
 		state.batched_vertices[state.vertex_size] =
 			(rodeo_vertex_t)
 			{
-				rectangle.x, rectangle.height + rectangle.y, 0.0f, abgr
+				.x = rectangle.x,
+				.y = rectangle.height + rectangle.y,
+				//.z = 0.0f,
+				.abgr = abgr
 			};
 		state.vertex_size += 1;
 
@@ -404,6 +445,56 @@ rodeo_rectangle_draw(
 	}
 }
 
+bgfx_texture_handle_t
+rodeo_texture_2d_create_default(
+	void
+	//uint32_t width,
+	//uint32_t height,
+	//char *memory
+)
+{
+	//uint32_t one_pixel = UINT32_MAX;//0xFFFFFFFF;
+	const bgfx_memory_t* txMem = bgfx_make_ref(defaultTxData, 4);
+	texture = bgfx_create_texture_2d(
+		1,
+		1,
+		false,
+		0,
+		BGFX_TEXTURE_FORMAT_RGBA8,
+		0,
+		txMem
+	);
+	return texture;
+}
+
+void
+rodeo_texture_2d_draw(
+	//rodeo_rectangle_t source,
+	//rodeo_rectangle_t destination,
+	//rodeo_rgba_t color,
+	//rodeo_texture_2d_p texture
+	void
+)
+{
+	// gonna need to change the shader pipeline
+	// to also accept textures
+}
+
+
+/*
+rodeo_texture_2d_p
+rodeo_texture_2d_create_from_path(rodeo_string_t path)
+{
+	// call load file into data
+	// then call create_from_data variant
+}
+
+void
+rodeo_texture_2d_destroy(rodeo_texture_2d_t *texture)
+{
+
+}
+*/
 bgfx_shader_handle_t
 irodeo_shader_load(const rodeo_string_t path)
 {

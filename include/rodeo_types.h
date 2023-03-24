@@ -20,6 +20,8 @@ typedef struct
 	float y;
 	float z;
 	uint32_t abgr;
+	float tex_x;
+	float tex_y;
 }
 rodeo_vertex_t;
 
@@ -35,6 +37,12 @@ typedef struct
 	float height;
 }
 rodeo_rectangle_t;
+
+typedef struct
+{
+	uint8_t fill_this_out;
+}
+rodeo_texture_2d_t;
 
 /// --- String ---
 
@@ -61,3 +69,5 @@ rodeo_loglevel_t;
 typedef
 void
 (*rodeo_log_function)(rodeo_string_t text);
+
+typedef rodeo_texture_2d_t* rodeo_texture_2d_p;

@@ -1,5 +1,6 @@
 
-// public internal
+// -- internal --
+// public
 #include "rodeo_types.h"
 
 // system
@@ -100,6 +101,24 @@ void
 rodeo_rectangle_draw(
 	rodeo_rectangle_t rectangle,
 	rodeo_rgba_t color
+);
+
+//rodeo_texture_2d_t*
+//rodeo_texture2D_create(
+//	uint32_t width,
+//	uint32_t height,
+//	char *memory
+//);
+
+//rodeo_texture_2d_p
+//rodeo_texture_2d_create_default(void);
+
+void
+rodeo_texture2D_draw(
+	rodeo_rectangle_t source,
+	rodeo_rectangle_t destination,
+	rodeo_rgba_t color,
+	rodeo_texture_2d_p texture
 );
 
 /// --- String ---
