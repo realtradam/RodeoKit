@@ -32,10 +32,14 @@ mrodeo_vargs_do(final_arg)			\
 
 /// --- Math ---
 
-uint32_t
-rodeo_rgba_to_uint32(const rodeo_rgba_t color);
+rodeo_RGBA8_t
+rodeo_RGBAFloat_to_RGBA8(const rodeo_RGBAFloat_t color);
 
+rodeo_BGRA8_t
+rodeo_RGBA8_to_BGRA8(const rodeo_RGBA8_t color);
 /// --- Core ---
+
+extern rodeo_texture_2d_t rodeo_texture_2d_default;
 
 #define								\
 mrodeo_window_do(					\
@@ -79,7 +83,7 @@ rodeo_frame_end(void);
 
 void
 rodeo_mainloop_run(
-	rodeo_mainloop_function main_loop_func
+	rodeo_mainLoop_function main_loop_func
 );
 
 bool
@@ -100,25 +104,22 @@ rodeo_renderer_flush(void);
 void
 rodeo_rectangle_draw(
 	rodeo_rectangle_t rectangle,
-	rodeo_rgba_t color
+	rodeo_RGBAFloat_t color
 );
 
-//rodeo_texture_2d_t*
-//rodeo_texture2D_create(
-//	uint32_t width,
-//	uint32_t height,
-//	char *memory
-//);
-
-//rodeo_texture_2d_p
-//rodeo_texture_2d_create_default(void);
+rodeo_texture_2d_t
+rodeo_texture_2d_create_from_RGBA8(
+	const uint32_t width,
+	const uint32_t height,
+	const uint8_t memory[]
+);
 
 void
-rodeo_texture2D_draw(
-	rodeo_rectangle_t source,
-	rodeo_rectangle_t destination,
-	rodeo_rgba_t color,
-	rodeo_texture_2d_p texture
+rodeo_texture_2d_draw(
+	const rodeo_rectangle_t source,
+	const rodeo_rectangle_t destination,
+	const rodeo_RGBAFloat_t color,
+	const rodeo_texture_2d_t *texture
 );
 
 /// --- String ---

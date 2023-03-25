@@ -21,16 +21,8 @@
 // -- system --
 #include <time.h>
 
-bgfx_texture_handle_t
-rodeo_texture_2d_create_default(void);
 
-static const unsigned char defaultTxData[] = 
-{
-	0xff, 0xff, 0xff, 0xff // 1x1 WHITE dot
-};
-
-static bgfx_texture_handle_t texture;
-static bgfx_uniform_handle_t sampler;
+rodeo_texture_2d_t rodeo_texture_2d_default;
 
 
 static irodeo_state_t state = {0};
@@ -159,8 +151,8 @@ rodeo_window_init(
 	mrodeo_bgfx_vertex_layout_do(&state.vertex_layout)
 	{
 		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
-		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
-		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, true, false);
+		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, true);
+		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_TEXCOORD0, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
 	}
 
 	state.vertex_buffer_handle = bgfx_create_dynamic_vertex_buffer(mrodeo_vertex_size_max, &state.vertex_layout, BGFX_BUFFER_NONE);
@@ -219,11 +211,42 @@ rodeo_window_init(
 		"Default render pipeline finished setup"
 	);
 
-	//bgfx_texture_handle_t default_texture = rodeo_texture_2d_create_default();
+	//bgfx_texture_handle_t default_bgfx_texture = rodeo_texture_2d_create_default();
 
-	sampler = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+	rodeo_texture_2d_default.internal_texture = malloc(sizeof(irodeo_texture_internal_t));
 
-	rodeo_texture_2d_create_default();
+	// used for binding textures to shader uniforms
+	state.texture_uniforms[0] = bgfx_create_uniform("default_texture", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+	state.texture_uniforms[1] = bgfx_create_uniform("texture_0", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+
+	{
+		// represents 1 pixel sized white texture
+		//const rodeo_RGBA8_t default_texture_data = 
+		//{
+		//	.red =   0xff,
+		//	.green = 0xff,
+		//	.blue =  0xff,
+		//	.alpha = 0xff,
+		//};
+		const uint8_t default_texture_data[] = {
+			0xff, 0x00, 0xff, 0xff,
+			0xff, 0xff, 0x00, 0xff,
+			0x00, 0xff, 0xff, 0xff,
+			0xff, 0xff, 0xff, 0xff,
+			//0xff, 0xff, 0xff, 0xff,
+		};
+
+		rodeo_texture_2d_default.internal_texture->texture_bgfx = 
+			bgfx_create_texture_2d(
+				2,
+				2,
+				false,
+				0,
+				BGFX_TEXTURE_FORMAT_RGBA8,
+				BGFX_SAMPLER_UVW_CLAMP | BGFX_SAMPLER_MAG_POINT,
+				bgfx_copy(&default_texture_data, sizeof(default_texture_data))
+			);
+	}
 
 	state.end_frame = SDL_GetPerformanceCounter();
 }
@@ -231,6 +254,7 @@ rodeo_window_init(
 void
 rodeo_window_deinit(void)
 {
+	free(rodeo_texture_2d_default.internal_texture);
 	bgfx_destroy_dynamic_index_buffer(state.index_buffer_handle);
 	bgfx_destroy_dynamic_vertex_buffer(state.vertex_buffer_handle);
 	bgfx_destroy_program(state.program_shader);
@@ -295,7 +319,7 @@ rodeo_frame_end(void)
 
 void
 rodeo_mainloop_run(
-	rodeo_mainloop_function mainloop_func
+	rodeo_mainLoop_function mainloop_func
 )
 {
 	#if __EMSCRIPTEN__
@@ -338,7 +362,34 @@ rodeo_renderer_name_get(void)
 void
 rodeo_renderer_flush(void)
 {
-	bgfx_set_texture(0, sampler, texture, UINT32_MAX);
+	// set default texture
+	bgfx_set_texture(
+		0,
+		state.texture_uniforms[0],
+		rodeo_texture_2d_default.internal_texture->texture_bgfx,
+		UINT32_MAX
+	);
+	if(state.active_texture_p != NULL)
+	{
+		// set dynamic texture
+		bgfx_set_texture(
+			1,
+			state.texture_uniforms[1],
+			*state.active_texture_p,
+			UINT32_MAX
+		);
+	}
+	else
+	{
+		// set to default if none exists
+		bgfx_set_texture(
+			1,
+			state.texture_uniforms[1],
+			rodeo_texture_2d_default.internal_texture->texture_bgfx,
+			UINT32_MAX
+		);
+	}
+
 	if(state.vertex_size > 0)
 	{
 		// upload remaining batched vertices
@@ -369,15 +420,27 @@ rodeo_renderer_flush(void)
 		state.index_size = 0;
 		state.index_count = 0;
 	}
+	state.active_texture_p = NULL;
 }
 
 void
 rodeo_rectangle_draw(
 	rodeo_rectangle_t rectangle,
-	rodeo_rgba_t color
+	rodeo_RGBAFloat_t color
 )
 {
-	const uint32_t abgr = rodeo_rgba_to_uint32(color);
+	rodeo_texture_2d_draw(
+		(rodeo_rectangle_t){ 0, 0, 1, 1 },
+		rectangle,
+		color,
+		NULL
+	);
+	/*
+	const rodeo_BGRA8_t bgra = rodeo_RGBA8_to_BGRA8(
+		rodeo_RGBAFloat_to_RGBA8(color)
+	);
+
+
 	if(state.vertex_size < mrodeo_vertex_size_max)
 	{
 		state.batched_vertices[state.vertex_size] =
@@ -386,7 +449,7 @@ rodeo_rectangle_draw(
 				.x = rectangle.width + rectangle.x,
 				.y = rectangle.height + rectangle.y,
 				//.z = 0.0f,
-				.abgr = abgr
+				.bgra = bgra.bgra,
 			};
 		state.vertex_size += 1;
 		state.batched_vertices[state.vertex_size] =
@@ -395,7 +458,7 @@ rodeo_rectangle_draw(
 				.x = rectangle.width + rectangle.x,
 				.y = rectangle.y,
 				//.z = 0.0f,
-				.abgr = abgr
+				.bgra = bgra.bgra,
 			};
 		state.vertex_size += 1;
 		state.batched_vertices[state.vertex_size] =
@@ -404,7 +467,7 @@ rodeo_rectangle_draw(
 				.x = rectangle.x,
 				.y = rectangle.y,
 				//.z = 0.0f,
-				.abgr = abgr
+				.bgra = bgra.bgra,
 			};
 		state.vertex_size += 1;
 		state.batched_vertices[state.vertex_size] =
@@ -413,7 +476,7 @@ rodeo_rectangle_draw(
 				.x = rectangle.x,
 				.y = rectangle.height + rectangle.y,
 				//.z = 0.0f,
-				.abgr = abgr
+				.bgra = bgra.bgra,
 			};
 		state.vertex_size += 1;
 
@@ -443,41 +506,142 @@ rodeo_rectangle_draw(
 	{
 		rodeo_renderer_flush();
 	}
+	*/
 }
 
-bgfx_texture_handle_t
-rodeo_texture_2d_create_default(
-	void
-	//uint32_t width,
-	//uint32_t height,
-	//char *memory
+
+rodeo_texture_2d_t
+rodeo_texture_2d_create_from_RGBA8(
+	const uint32_t width,
+	const uint32_t height,
+	const uint8_t memory[]
 )
 {
-	//uint32_t one_pixel = UINT32_MAX;//0xFFFFFFFF;
-	const bgfx_memory_t* txMem = bgfx_make_ref(defaultTxData, 4);
-	texture = bgfx_create_texture_2d(
-		1,
-		1,
+	rodeo_texture_2d_t texture;
+	texture.internal_texture = malloc(sizeof(irodeo_texture_internal_t));
+	texture.internal_texture->texture_bgfx = bgfx_create_texture_2d(
+		width,
+		height,
 		false,
-		0,
+		1,
 		BGFX_TEXTURE_FORMAT_RGBA8,
-		0,
-		txMem
+		BGFX_TEXTURE_NONE,
+		bgfx_copy(&memory, width * height * 4)
 	);
+
 	return texture;
 }
 
 void
 rodeo_texture_2d_draw(
-	//rodeo_rectangle_t source,
-	//rodeo_rectangle_t destination,
-	//rodeo_rgba_t color,
-	//rodeo_texture_2d_p texture
-	void
+	const rodeo_rectangle_t source,
+	const rodeo_rectangle_t destination,
+	const rodeo_RGBAFloat_t color,
+	const rodeo_texture_2d_t *texture
 )
 {
 	// gonna need to change the shader pipeline
 	// to also accept textures
+	const rodeo_BGRA8_t bgra = rodeo_RGBA8_to_BGRA8(
+		rodeo_RGBAFloat_to_RGBA8(color)
+	);
+	float texture_uniform_slot = 0.0;
+
+	// if not using texture: use default instead
+	// otherwise check what current texture is active
+	//	if none or the same: set it
+	//	if different: flush and then set it
+	if(texture != NULL)
+	{
+		if(state.active_texture_p != NULL)
+		{
+			if(&texture->internal_texture->texture_bgfx != state.active_texture_p)
+			{
+				rodeo_renderer_flush();
+			}
+		}
+		texture_uniform_slot = 1.0;
+		state.active_texture_p = &texture->internal_texture->texture_bgfx;
+	}
+
+
+	if(state.vertex_size < mrodeo_vertex_size_max)
+	{
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
+			{
+				.x = destination.width + destination.x,
+				.y = destination.height + destination.y,
+				//.z = 0.0f,
+				.bgra = bgra.bgra,
+				.texture_id = texture_uniform_slot,
+				.texture_x = 1,//source.width + source.x,
+				.texture_y = 1,//source.height + source.y,
+			};
+		state.vertex_size += 1;
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
+			{
+				.x = destination.width + destination.x,
+				.y = destination.y,
+				//.z = 0.0f,
+				.bgra = bgra.bgra,
+				.texture_id = texture_uniform_slot,
+				.texture_x = 1,//source.width + source.x,
+				.texture_y = 0,//source.y,
+			};
+		state.vertex_size += 1;
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
+			{
+				.x = destination.x,
+				.y = destination.y,
+				//.z = 0.0f,
+				.bgra = bgra.bgra,
+				.texture_id = texture_uniform_slot,
+				.texture_x = 0,//source.x,
+				.texture_y = 0,//source.y,
+			};
+		state.vertex_size += 1;
+		state.batched_vertices[state.vertex_size] =
+			(rodeo_vertex_t)
+			{
+				.x = destination.x,
+				.y = destination.height + destination.y,
+				//.z = 0.0f,
+				.bgra = bgra.bgra,
+				.texture_id = texture_uniform_slot,
+				.texture_x = 0,//source.x,
+				.texture_y = 1,//source.height + source.y,
+			};
+		state.vertex_size += 1;
+
+		int indices[] =
+		{
+			0, 1, 3,
+			1, 2, 3
+			//2, 1, 0,
+			//2, 3, 1
+		};
+		state.batched_indices[state.index_size] = state.index_count + indices[0];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[1];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[2];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[3];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[4];
+		state.index_size += 1;
+		state.batched_indices[state.index_size] = state.index_count + indices[5];
+		state.index_size += 1;
+		state.index_count += 4;
+	}
+
+	if(state.vertex_size >= mrodeo_vertex_size_max)
+	{
+		rodeo_renderer_flush();
+	}
 }
 
 
