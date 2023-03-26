@@ -3,7 +3,7 @@
 // public
 #include "rodeo_types.h"
 
-// system
+// -- system --
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -38,8 +38,14 @@ rodeo_color_RGBAFloat_to_RGBA8(const rodeo_color_RGBAFloat_t color);
 rodeo_color_RGBAFloat_t
 rodeo_color_RGBA8_to_RGBAFloat(const rodeo_color_RGBA8_t color);
 
-int32_t
-rodeo_random_simple_get(void);
+void
+rodeo_random_seed_set(uint64_t seed);
+
+double
+rodeo_random_double_get(void);
+
+uint64_t
+rodeo_random_uint64_get(void);
 
 /// --- Core ---
 
@@ -60,13 +66,19 @@ mrodeo_window_do(					\
 
 void
 rodeo_window_init(
-	int screen_height,
-	int screen_width,
-	char* title
+	uint16_t screen_height,
+	uint16_t screen_width,
+	rodeo_string_t title
 );
 
 void
 rodeo_window_deinit(void);
+
+uint16_t
+rodeo_screen_width_get(void);
+
+uint16_t
+rodeo_screen_height_get(void);
 
 #define								\
 mrodeo_frame_do(					\
@@ -108,8 +120,8 @@ rodeo_texture_2d_default_get(void);
 
 rodeo_texture_2d_t
 rodeo_texture_2d_create_from_RGBA8(
-	const uint32_t width,
-	const uint32_t height,
+	const uint16_t width,
+	const uint16_t height,
 	const uint8_t memory[]
 );
 

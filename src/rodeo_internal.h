@@ -19,6 +19,12 @@ bgfx_shader_handle_t
 irodeo_\
 shader_load(const rodeo_string_t path);
 
+void
+irodeo_random_seed_set(stc64_t seed);
+
+stc64_t*
+irodeo_random_seed_get(void);
+
 float
 irodeo_frame_remaining_get(void);
 

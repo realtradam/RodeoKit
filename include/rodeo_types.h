@@ -8,7 +8,8 @@
 typedef struct irodeo_texture_internal_t irodeo_texture_internal_t;
 typedef irodeo_texture_internal_t *rodeo_texture_internal_p;
 
-typedef union
+typedef
+union
 {
 	struct {
 		float red;
@@ -20,7 +21,8 @@ typedef union
 }
 rodeo_color_RGBAFloat_t;
 
-typedef union
+typedef
+union
 {
 	struct
 	{
@@ -35,7 +37,8 @@ typedef union
 rodeo_color_RGBA8_t;
 
 
-typedef struct
+typedef
+struct
 {
 	float x;
 	float y;
@@ -55,7 +58,8 @@ typedef
 void
 (*rodeo_mainLoop_function)(void);
 
-typedef struct
+typedef
+struct
 {
 	float x;
 	float y;
@@ -64,7 +68,8 @@ typedef struct
 }
 rodeo_rectangle_t;
 
-typedef struct
+typedef
+struct
 {
 	rodeo_texture_internal_p internal_texture;
 	uint32_t width;
@@ -95,7 +100,8 @@ typedef union {
 
 /// --- Log ---
 
-typedef enum
+typedef
+enum
 {
 	rodeo_logLevel_info,
 	rodeo_logLevel_warning,
@@ -107,4 +113,25 @@ typedef
 void
 (*rodeo_log_function)(rodeo_string_t text);
 
+typedef 
+union
+{
+	struct {
+		float x;
+		float y;
+	};
+	float array[2];
+}
+rodeo_vector2_t;
 
+typedef 
+union
+{
+	struct {
+		float x;
+		float y;
+		float z;
+	};
+	float array[3];
+}
+rodeo_vector3_t;

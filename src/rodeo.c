@@ -14,10 +14,11 @@
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
-//#define CGLM_FORCE_LEFT_HANDED
+/*#define CGLM_FORCE_LEFT_HANDED*/
 #define CGLM_FORCE_DEPTH_ZERO_TO_ONE
-//#define CGLM_CLIPSPACE_INCLUDE_ALL
+/*#define CGLM_CLIPSPACE_INCLUDE_ALL*/
 #include "cglm/cglm.h"
+#include "stc/crandom.h"
 
 // -- system --
 #include <time.h>
@@ -26,9 +27,9 @@ static irodeo_state_t state = {0};
 
 void
 rodeo_window_init(
-	int screen_height,
-	int screen_width,
-	char* title
+	uint16_t screen_height,
+	uint16_t screen_width,
+	rodeo_string_t title
 )
 {
 	state.window = NULL;
@@ -60,7 +61,7 @@ rodeo_window_init(
 		"Initializing SDL window..."
 	);
 	state.window = SDL_CreateWindow(
-			title,
+			rodeo_string_to_constcstr(&title),
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
 			screen_width,
@@ -243,6 +244,8 @@ rodeo_window_init(
 		state.active_texture_p = &state.default_texture.internal_texture->texture_bgfx;
 	}
 
+	rodeo_random_seed_set(SDL_GetTicks64());
+
 	state.end_frame = SDL_GetPerformanceCounter();
 }
 
@@ -258,6 +261,18 @@ rodeo_window_deinit(void)
 
 	SDL_DestroyWindow(state.window);
 	SDL_Quit();
+}
+
+uint16_t
+rodeo_screen_width_get(void)
+{
+	return state.screen_width;
+}
+
+uint16_t
+rodeo_screen_height_get(void)
+{
+	return state.screen_height;
 }
 
 void
@@ -277,8 +292,8 @@ rodeo_frame_begin(void)
 	// but 'no' is incorrect
 	glm_ortho_rh_zo( 
 		0,
-		state.screen_width,
-		state.screen_height,
+		(float)state.screen_width,
+		(float)state.screen_height,
 		0,
 		// near
 		-0.1f,
@@ -353,7 +368,9 @@ rodeo_debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
 rodeo_string_t
 rodeo_renderer_name_get(void)
 {
-	return rodeo_string_create(bgfx_get_renderer_name(bgfx_get_renderer_type()));
+	return rodeo_string_create(
+		bgfx_get_renderer_name(bgfx_get_renderer_type())
+	);
 }
 
 void
@@ -410,7 +427,7 @@ rodeo_renderer_flush(void)
 		);
 
 		// submit vertices & batches
-		bgfx_submit(0, state.program_shader, 0, BGFX_DISCARD_ALL);
+		bgfx_submit(0, state.program_shader, 0, BGFX_DISCARD_NONE);
 
 		// reset arrays
 		state.vertex_size = 0;
@@ -428,8 +445,8 @@ rodeo_texture_2d_default_get(void)
 
 rodeo_texture_2d_t
 rodeo_texture_2d_create_from_RGBA8(
-	const uint32_t width,
-	const uint32_t height,
+	const uint16_t width,
+	const uint16_t height,
 	const uint8_t memory[]
 )
 {
@@ -437,14 +454,14 @@ rodeo_texture_2d_create_from_RGBA8(
 	texture.internal_texture = malloc(sizeof(irodeo_texture_internal_t));
 	texture.internal_texture->texture_bgfx =
 			bgfx_create_texture_2d(
-			width,
-			height,
-			false,
-			0,
-			BGFX_TEXTURE_FORMAT_RGBA8,
-			BGFX_SAMPLER_UVW_CLAMP | BGFX_SAMPLER_MAG_POINT,
-			bgfx_copy(memory, width * height * sizeof(uint8_t) * 4)
-		);
+				width,
+				height,
+				false,
+				0,
+				BGFX_TEXTURE_FORMAT_RGBA8,
+				BGFX_SAMPLER_UVW_CLAMP | BGFX_SAMPLER_MAG_POINT,
+				bgfx_copy(memory, (uint32_t)width * (uint32_t)height * sizeof(uint8_t) * 4)
+			);
 
 	texture.width = width;
 	texture.height = height;
@@ -492,10 +509,10 @@ rodeo_texture_2d_draw(
 	if(source != NULL && texture != NULL)
 	{
 		source_applied = (rodeo_rectangle_t){
-			.x = source->x / texture->width,
-			.y = source->y / texture->height,
-			.width = source->width / texture->width,
-			.height = source->height / texture->height,
+			.x = source->x / (float)texture->width,
+			.y = source->y / (float)texture->height,
+			.width = source->width / (float)texture->width,
+			.height = source->height / (float)texture->height,
 		};
 	}
 	else
@@ -589,7 +606,7 @@ rodeo_texture_2d_draw(
 			};
 		state.vertex_size += 1;
 
-		int indices[] =
+		index_type_t indices[] =
 		{
 			0, 1, 3,
 			1, 2, 3
@@ -662,8 +679,8 @@ rodeo_texture_2d_create_from_path(rodeo_string_t path)
 
 	// load the pixel data into our own texture
 	rodeo_texture_2d_t texture = rodeo_texture_2d_create_from_RGBA8(
-		converted_surface->w,
-		converted_surface->h,
+		(uint16_t)converted_surface->w,
+		(uint16_t)converted_surface->h,
 		converted_surface->pixels
 	);
 
@@ -692,9 +709,27 @@ irodeo_shader_load(const rodeo_string_t path)
 	}
 
 	fseek(file, 0, SEEK_END);
-	int64_t file_size = ftell(file);
+	int64_t file_size_temp = ftell(file);
+	if(file_size_temp < 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Failed to get current file position of given stream(ftell() error)"
+		);
+		exit(EXIT_FAILURE);
+	}
+	if((file_size_temp + 1) > UINT32_MAX)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"File size larger then what bgfx can allocate"
+		);
+		exit(EXIT_FAILURE);
+	}
+	uint32_t file_size = (uint32_t)file_size_temp;
 	fseek(file, 0, SEEK_SET);
 
+	
 	const bgfx_memory_t *mem = bgfx_alloc(file_size + 1);
 	fread(mem->data, 1, file_size, file);
 	mem->data[mem->size - 1] = '\0';
@@ -751,6 +786,18 @@ rodeo_frame_limit_get(void)
 	#endif
 }
 
+void
+irodeo_random_seed_set(stc64_t seed)
+{
+	state.random_seed = seed;
+}
+
+stc64_t*
+irodeo_random_seed_get(void)
+{
+	return &state.random_seed;
+}
+
 // measures how much time there is left in the remaining frame until
 // the frame target time is reached. If we surpassed the target time
 // then this will be negative
@@ -784,7 +831,7 @@ irodeo_frame_stall(void)
 	float stall_time = irodeo_frame_remaining_get();
 	if(stall_time > 0.0005)
 	{
-		SDL_Delay(stall_time * 0.9995);
+		SDL_Delay((uint32_t)(stall_time * 0.9995));
 	}
 
 	// then we spinlock for the small remaining amount of time
