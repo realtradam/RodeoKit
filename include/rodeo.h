@@ -32,14 +32,16 @@ mrodeo_vargs_do(final_arg)			\
 
 /// --- Math ---
 
-rodeo_RGBA8_t
-rodeo_RGBAFloat_to_RGBA8(const rodeo_RGBAFloat_t color);
+rodeo_color_RGBA8_t
+rodeo_color_RGBAFloat_to_RGBA8(const rodeo_color_RGBAFloat_t color);
 
-rodeo_BGRA8_t
-rodeo_RGBA8_to_BGRA8(const rodeo_RGBA8_t color);
+rodeo_color_RGBAFloat_t
+rodeo_color_RGBA8_to_RGBAFloat(const rodeo_color_RGBA8_t color);
+
+int32_t
+rodeo_random_simple_get(void);
+
 /// --- Core ---
-
-extern rodeo_texture_2d_t rodeo_texture_2d_default;
 
 #define								\
 mrodeo_window_do(					\
@@ -82,15 +84,15 @@ void
 rodeo_frame_end(void);
 
 void
-rodeo_mainloop_run(
+rodeo_mainLoop_run(
 	rodeo_mainLoop_function main_loop_func
 );
 
 bool
-rodeo_window_check_quit(void);
+rodeo_window_quit_get(void);
 
 void
-rodeo_set_quit(bool quit);
+rodeo_window_quit_set(bool quit);
 
 void
 rodeo_debug_text_draw(uint16_t x, uint16_t y, const char *format, ...);
@@ -101,11 +103,8 @@ rodeo_renderer_name_get(void);
 void
 rodeo_renderer_flush(void);
 
-void
-rodeo_rectangle_draw(
-	rodeo_rectangle_t rectangle,
-	rodeo_RGBAFloat_t color
-);
+const rodeo_texture_2d_t*
+rodeo_texture_2d_default_get(void);
 
 rodeo_texture_2d_t
 rodeo_texture_2d_create_from_RGBA8(
@@ -114,11 +113,23 @@ rodeo_texture_2d_create_from_RGBA8(
 	const uint8_t memory[]
 );
 
+rodeo_texture_2d_t
+rodeo_texture_2d_create_from_path(rodeo_string_t path);
+
+void
+rodeo_texture_2d_destroy(rodeo_texture_2d_t *texture);
+
+void
+rodeo_rectangle_draw(
+	const rodeo_rectangle_t *rectangle,
+	const rodeo_color_RGBAFloat_t *color
+);
+
 void
 rodeo_texture_2d_draw(
-	const rodeo_rectangle_t source,
-	const rodeo_rectangle_t destination,
-	const rodeo_RGBAFloat_t color,
+	const rodeo_rectangle_t *destination,
+	const rodeo_rectangle_t *source,
+	const rodeo_color_RGBAFloat_t *color,
 	const rodeo_texture_2d_t *texture
 );
 
@@ -174,7 +185,7 @@ rodeo_string_vargs_format(const char *format, va_list vargs);
 
 void
 rodeo_log(
-	rodeo_loglevel_t loglevel,
+	rodeo_logLevel_t loglevel,
 	const char *format,
 	...
 );
@@ -188,7 +199,7 @@ float
 rodeo_frame_time_get(void);
 
 float
-rodeo_frame_persecond_get(void);
+rodeo_frame_perSecond_get(void);
 
 void
 rodeo_frame_limit_set(uint32_t limit);

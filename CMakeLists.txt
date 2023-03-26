@@ -32,6 +32,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 -Wextra
 -Wpedantic
 #-Werror
+-Wconversion
 )
 endif()
 
@@ -53,6 +54,7 @@ endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 	add_subdirectory(external/SDL)
+	add_subdirectory(external/SDL_image)
 endif()
 add_subdirectory(external/cglm)
 
@@ -107,6 +109,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_include_directories(${PROJECT_NAME}
 		PUBLIC external/SDL/include
+		PUBLIC external/SDL_image/include
 		PUBLIC external/bgfx/include
 		PUBLIC external/bx/include
 		PUBLIC external/cglm/include
@@ -117,6 +120,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 	target_link_directories(${PROJECT_NAME}
 		PRIVATE external/SDL
+		PRIVATE external/SDL_image
 		PRIVATE external/bgfx
 		)
 endif()
@@ -135,6 +139,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		#SDL2::SDL2-static # static lib
 		#SDL2::SDL2main
 		SDL2::SDL2 # dynamic lib
+		SDL2_image
 		cglm
 		${BINARY_DIR}/.build/linux64_gcc/bin/libbgfx-shared-libRelease.so
 		)

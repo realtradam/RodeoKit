@@ -18,7 +18,7 @@ typedef union
 	};
 	float array[4];
 }
-rodeo_RGBAFloat_t;
+rodeo_color_RGBAFloat_t;
 
 typedef union
 {
@@ -32,28 +32,19 @@ typedef union
 	uint32_t rgba;
 	uint8_t array[4];
 }
-rodeo_RGBA8_t;
+rodeo_color_RGBA8_t;
 
-typedef union
-{
-	struct
-	{
-		uint8_t blue;
-		uint8_t green;
-		uint8_t red;
-		uint8_t alpha;
-	};
-	uint32_t bgra;
-	uint8_t array[4];
-}
-rodeo_BGRA8_t;
 
 typedef struct
 {
 	float x;
 	float y;
 	float z;
-	uint32_t bgra;
+	rodeo_color_RGBAFloat_t color;
+	//float red;
+	//float green;
+	//float blue;
+	//float alpha;
 	float texture_x;
 	float texture_y;
 	float texture_id;
@@ -106,11 +97,11 @@ typedef union {
 
 typedef enum
 {
-	rodeo_loglevel_info,
-	rodeo_loglevel_warning,
-	rodeo_loglevel_error
+	rodeo_logLevel_info,
+	rodeo_logLevel_warning,
+	rodeo_logLevel_error
 }
-rodeo_loglevel_t;
+rodeo_logLevel_t;
 
 typedef
 void

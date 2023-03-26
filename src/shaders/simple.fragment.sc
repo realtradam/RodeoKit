@@ -1,4 +1,4 @@
-$input v_color0, v_texcoord0
+$input v_color0, v_texcoord0, v_texcoord1
 
 #include <bgfx_shader.sh>
 
@@ -17,12 +17,12 @@ SAMPLER2D(texture_0, 1);
 
 void main()
 {
-  //if(v_texcoord0.y < 0.0)
-  //{ 
-  gl_FragColor = v_color0 * texture2D(default_texture, v_texcoord0.xy);
-  //} 
-  //else
-  //{ 
-  //gl_FragColor = v_color0 * texture2D(texture_0, v_texcoord0.xy);
-  //} 
+  if(v_texcoord1 == 1.0)
+  { 
+    gl_FragColor = v_color0 * texture2D(texture_0, v_texcoord0.xy);
+  } 
+  else
+  { 
+    gl_FragColor = v_color0 * texture2D(default_texture, v_texcoord0.xy);
+  } 
 }

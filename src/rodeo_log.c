@@ -10,7 +10,7 @@ static rodeo_log_function logging_function = NULL;
 
 void
 rodeo_log(
-	rodeo_loglevel_t loglevel,
+	rodeo_logLevel_t loglevel,
 	const char *format,
 	...
 )
@@ -23,19 +23,19 @@ rodeo_log(
 
 	switch(loglevel)
 	{
-		case rodeo_loglevel_info:
+		case rodeo_logLevel_info:
 			rodeo_string_prepend(
 				&formatted,
 				rodeo_string_create("[INFO]: ")
 			);
 			break;
-		case rodeo_loglevel_warning:
+		case rodeo_logLevel_warning:
 			rodeo_string_prepend(
 				&formatted,
 				rodeo_string_create("\033[33m[WARN]:\033[0m ")
 			);
 			break;
-		case rodeo_loglevel_error:
+		case rodeo_logLevel_error:
 			rodeo_string_prepend(
 				&formatted,
 				rodeo_string_create("\033[31;1m[ERROR]:\033[0m ")

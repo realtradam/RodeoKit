@@ -16,3 +16,6 @@
 [submodule "external/STC"]
 	path = external/STC
 	url = https://github.com/realtradam/STC-modified
+[submodule "external/SDL_image"]
+	path = external/SDL_image
+	url = https://github.com/libsdl-org/SDL_image

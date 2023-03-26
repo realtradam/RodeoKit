@@ -1,17 +1,19 @@
 
-// public internal
+// -- internal --
+// public
 #include "rodeo.h"
 
-// system
+// -- system --
 #include <stdint.h>
 
-// when casting from float to int(example):
-// 20.50-21.00 rounds up to 21
-// 20.00-20.49 rounds down to 20
-rodeo_RGBA8_t
-rodeo_RGBAFloat_to_RGBA8(const rodeo_RGBAFloat_t color)
+// -- external --
+#include "SDL2/SDL.h"
+
+// rounds to nearest rather then truncation
+rodeo_color_RGBA8_t
+rodeo_color_RGBAFloat_to_RGBA8(const rodeo_color_RGBAFloat_t color)
 {
-	return (rodeo_RGBA8_t){
+	return (rodeo_color_RGBA8_t){
 		.red = (uint8_t)((color.red * (float)UINT8_MAX) + 0.5),
 		.green = (uint8_t)((color.green * (float)UINT8_MAX) + 0.5),
 		.blue = (uint8_t)((color.blue * (float)UINT8_MAX) + 0.5),
@@ -19,13 +21,28 @@ rodeo_RGBAFloat_to_RGBA8(const rodeo_RGBAFloat_t color)
 	};
 }
 
-rodeo_BGRA8_t
-rodeo_RGBA8_to_BGRA8(const rodeo_RGBA8_t color)
+rodeo_color_RGBAFloat_t
+rodeo_color_RGBA8_to_RGBAFloat(const rodeo_color_RGBA8_t color)
 {
-	return (rodeo_BGRA8_t){
-		.alpha = color.alpha,
-		.blue = color.blue,
-		.green = color.green,
-		.red = color.red,
+	return (rodeo_color_RGBAFloat_t){
+		.red = (float)color.red / 255.0f,
+		.green = (float)color.green / 255.0f,
+		.blue = (float)color.blue / 255.0f,
+		.alpha = (float)color.alpha / 255.0f,
 	};
 }
+
+double
+rodeo_random_simple_float_get(void)
+{
+	return 0;
+}
+
+uint64_t
+rodeo_random_simple_uint64_get(void)
+{
+	return 0;
+}
+
+
+

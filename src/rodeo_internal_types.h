@@ -31,6 +31,7 @@ typedef struct
 	uint16_t index_count;
 	uint16_t index_size;
 	uint16_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
+	rodeo_texture_2d_t default_texture;
 	bgfx_texture_handle_t *active_texture_p;
 	bgfx_shader_handle_t vertex_shader;
 	bgfx_shader_handle_t fragment_shader;
