@@ -14,7 +14,7 @@
 #include "bgfx/c99/bgfx.h"
 #include "stc/crandom.h"
 
-typedef uint16_t index_type_t;
+typedef uint16_t irodeo_index_type_t;
 
 typedef struct
 {
@@ -27,13 +27,16 @@ typedef struct
 	bool quit;
 
 	bgfx_vertex_layout_t vertex_layout;
-	bgfx_dynamic_vertex_buffer_handle_t vertex_buffer_handle;
-	bgfx_dynamic_index_buffer_handle_t index_buffer_handle;
-	rodeo_vertex_t batched_vertices[mrodeo_vertex_size_max];
-	index_type_t vertex_size;
-	index_type_t index_count;
-	index_type_t index_size;
-	index_type_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
+	//bgfx_dynamic_vertex_buffer_handle_t vertex_buffer_handle;
+	//bgfx_dynamic_index_buffer_handle_t index_buffer_handle;
+	bgfx_transient_vertex_buffer_t vertex_buffer_handle;
+	bgfx_transient_index_buffer_t index_buffer_handle;
+	rodeo_vertex_t *batched_vertices;
+	irodeo_index_type_t *batched_indices;
+	irodeo_index_type_t vertex_size;
+	irodeo_index_type_t index_count;
+	irodeo_index_type_t index_size;
+	//irodeo_index_type_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
 	rodeo_texture_2d_t default_texture;
 	bgfx_texture_handle_t *active_texture_p;
 	bgfx_shader_handle_t vertex_shader;
@@ -55,5 +58,4 @@ struct
 irodeo_texture_internal_t
 {
 	bgfx_texture_handle_t texture_bgfx;
-	//bgfx_uniform_handle_t sampler_bgfx;
 };

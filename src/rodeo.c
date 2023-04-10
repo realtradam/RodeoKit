@@ -154,10 +154,6 @@ rodeo_window_init(
 		bgfx_vertex_layout_add(&state.vertex_layout, BGFX_ATTRIB_TEXCOORD1, 1, BGFX_ATTRIB_TYPE_FLOAT, false, false);
 	}
 
-	state.vertex_buffer_handle = bgfx_create_dynamic_vertex_buffer(mrodeo_vertex_size_max, &state.vertex_layout, BGFX_BUFFER_NONE);
-
-	state.index_buffer_handle = bgfx_create_dynamic_index_buffer((mrodeo_vertex_size_max / 4) * 6, BGFX_BUFFER_NONE);
-
 	// load shaders
 	rodeo_string_t shader_path = rodeo_string_create("???");
 	switch(bgfx_get_renderer_type()) {
@@ -254,8 +250,8 @@ rodeo_window_deinit(void)
 {
 	free(state.default_texture.internal_texture);
 
-	bgfx_destroy_dynamic_index_buffer(state.index_buffer_handle);
-	bgfx_destroy_dynamic_vertex_buffer(state.vertex_buffer_handle);
+	//bgfx_destroy_dynamic_index_buffer(state.index_buffer_handle);
+	//bgfx_destroy_dynamic_vertex_buffer(state.vertex_buffer_handle);
 	bgfx_destroy_program(state.program_shader);
 	bgfx_shutdown();
 
@@ -304,6 +300,9 @@ rodeo_frame_begin(void)
 	bgfx_set_view_transform(0, view, proj);
 	bgfx_set_view_rect(0, 0, 0, state.screen_width, state.screen_height);
 	bgfx_touch(0);
+
+	irodeo_render_buffer_transient_alloc();
+
 	state.start_frame = state.end_frame;
 }
 
@@ -327,6 +326,15 @@ rodeo_frame_end(void)
 	state.frame_count += 1;
 	state.end_frame = SDL_GetPerformanceCounter();
 	state.frame_time = ((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
+}
+
+void
+irodeo_render_buffer_transient_alloc(void)
+{
+	bgfx_alloc_transient_vertex_buffer(&state.vertex_buffer_handle, mrodeo_vertex_size_max, &state.vertex_layout);
+	bgfx_alloc_transient_index_buffer(&state.index_buffer_handle, mrodeo_index_size_max, false);
+	state.batched_vertices = (rodeo_vertex_t*)state.vertex_buffer_handle.data;
+	state.batched_indices = (irodeo_index_type_t*)state.index_buffer_handle.data;
 }
 
 void
@@ -406,16 +414,6 @@ rodeo_renderer_flush(void)
 
 	if(state.vertex_size > 0)
 	{
-		// upload remaining batched vertices
-		bgfx_set_dynamic_vertex_buffer(0, state.vertex_buffer_handle, 0, state.vertex_size);
-		const bgfx_memory_t* vbm = bgfx_copy(state.batched_vertices, sizeof(rodeo_vertex_t) * state.vertex_size);
-		bgfx_update_dynamic_vertex_buffer(state.vertex_buffer_handle,  0, vbm);
-
-		// upload remaining batched indices
-		bgfx_set_dynamic_index_buffer(state.index_buffer_handle, 0, state.index_size);
-		const bgfx_memory_t* ibm = bgfx_copy(state.batched_indices, sizeof(uint16_t) * state.index_size);
-		bgfx_update_dynamic_index_buffer(state.index_buffer_handle, 0, ibm);
-
 		bgfx_set_state(
 			BGFX_STATE_CULL_CW |
 			BGFX_STATE_WRITE_RGB |
@@ -426,6 +424,18 @@ rodeo_renderer_flush(void)
 			0
 		);
 
+		// upload remaining batched vertices
+		bgfx_set_transient_vertex_buffer(0, &state.vertex_buffer_handle, 0, state.vertex_size);
+		//const bgfx_memory_t* vbm = bgfx_copy(state.batched_vertices, sizeof(rodeo_vertex_t) * state.vertex_size);
+		//bgfx_update_dynamic_vertex_buffer(state.vertex_buffer_handle,  0, vbm);
+
+		// upload remaining batched indices
+		bgfx_set_transient_index_buffer(&state.index_buffer_handle, 0, state.index_size);
+		//bgfx_set_dynamic_index_buffer(state.index_buffer_handle, 0, state.index_size);
+		//const bgfx_memory_t* ibm = bgfx_copy(state.batched_indices, sizeof(uint16_t) * state.index_size);
+		//bgfx_update_dynamic_index_buffer(state.index_buffer_handle, 0, ibm);
+
+
 		// submit vertices & batches
 		bgfx_submit(0, state.program_shader, 0, BGFX_DISCARD_NONE);
 
@@ -433,6 +443,9 @@ rodeo_renderer_flush(void)
 		state.vertex_size = 0;
 		state.index_size = 0;
 		state.index_count = 0;
+
+		// allocate new buffers
+		irodeo_render_buffer_transient_alloc();
 	}
 	state.active_texture_p = NULL;
 }
@@ -606,7 +619,7 @@ rodeo_texture_2d_draw(
 			};
 		state.vertex_size += 1;
 
-		index_type_t indices[] =
+		irodeo_index_type_t indices[] =
 		{
 			0, 1, 3,
 			1, 2, 3
@@ -768,7 +781,7 @@ rodeo_frame_limit_set(uint32_t limit)
 {
 	#ifdef __EMSCRIPTEN__
 		rodeo_log(
-			rodeo_loglevel_warning,
+			rodeo_logLevel_warning,
 			"Framerate limit cannot be set on web platform. Limit is enforced by platform to 60fps"
 		);
 	#else

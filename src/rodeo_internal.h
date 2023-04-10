@@ -15,9 +15,11 @@ mrodeo_bgfx_vertex_layout_do(vertex_layout)		\
 		bgfx_vertex_layout_end(vertex_layout)	\
 	)
 
+void
+irodeo_render_buffer_transient_alloc(void);
+
 bgfx_shader_handle_t
-irodeo_\
-shader_load(const rodeo_string_t path);
+irodeo_shader_load(const rodeo_string_t path);
 
 void
 irodeo_random_seed_set(stc64_t seed);
