@@ -29,7 +29,7 @@ void
 rodeo_window_init(
 	uint16_t screen_height,
 	uint16_t screen_width,
-	rodeo_string_t title
+	cstr title
 )
 {
 	state.window = NULL;
@@ -61,7 +61,7 @@ rodeo_window_init(
 		"Initializing SDL window..."
 	);
 	state.window = SDL_CreateWindow(
-			rodeo_string_to_constcstr(&title),
+			cstr_str(&title),
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
 			screen_width,
@@ -155,7 +155,7 @@ rodeo_window_init(
 	}
 
 	// load shaders
-	rodeo_string_t shader_path = rodeo_string_create("???");
+	cstr shader_path = cstr_lit("???");
 	switch(bgfx_get_renderer_type()) {
         case BGFX_RENDERER_TYPE_NOOP:
 			rodeo_log(
@@ -164,13 +164,13 @@ rodeo_window_init(
 			);
 			exit(EXIT_FAILURE);
         case BGFX_RENDERER_TYPE_OPENGLES:
-			rodeo_string_set(
+			cstr_assign(
 				&shader_path,
 				"shaders/100_es/"
 			);
 			break;
         case BGFX_RENDERER_TYPE_VULKAN:
-			rodeo_string_set(
+			cstr_assign(
 				&shader_path,
 				"shaders/spirv/"
 			);
@@ -182,15 +182,17 @@ rodeo_window_init(
 			);
 			exit(EXIT_FAILURE);
     }
-	rodeo_string_t vertex_shader_path = rodeo_string_create("simple.vertex.bin");
-	rodeo_string_t fragment_shader_path = rodeo_string_create("simple.fragment.bin");
+	cstr vertex_shader_path = cstr_lit("simple.vertex.bin");
+	cstr fragment_shader_path = cstr_lit("simple.fragment.bin");
 
-	rodeo_string_prepend(
+	cstr_insert_s(
 		&vertex_shader_path,
+		0,
 		shader_path
 	);
-	rodeo_string_prepend(
+	cstr_insert_s(
 		&fragment_shader_path,
+		0,
 		shader_path
 	);
 
@@ -373,10 +375,10 @@ rodeo_debug_text_draw(u_int16_t x, u_int16_t y, const char *format, ...)
 	}
 }
 
-rodeo_string_t
+cstr
 rodeo_renderer_name_get(void)
 {
-	return rodeo_string_create(
+	return cstr_from(
 		bgfx_get_renderer_name(bgfx_get_renderer_type())
 	);
 }
@@ -648,10 +650,10 @@ rodeo_texture_2d_draw(
 }
 
 rodeo_texture_2d_t
-rodeo_texture_2d_create_from_path(rodeo_string_t path)
+rodeo_texture_2d_create_from_path(cstr path)
 {
 	// load image to surface
-	SDL_Surface *surface = IMG_Load(rodeo_string_to_constcstr(&path));
+	SDL_Surface *surface = IMG_Load(cstr_str(&path));
 	if(surface == NULL)
 	{
 		rodeo_log(
@@ -704,9 +706,9 @@ rodeo_texture_2d_create_from_path(rodeo_string_t path)
 }
 
 bgfx_shader_handle_t
-irodeo_shader_load(const rodeo_string_t path)
+irodeo_shader_load(const cstr path)
 {
-	const char* path_cstr = rodeo_string_to_constcstr(&path);
+	const char* path_cstr = cstr_str(&path);
 	bgfx_shader_handle_t invalid = BGFX_INVALID_HANDLE;
 
 	FILE *file = fopen(path_cstr, "rb");

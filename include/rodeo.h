@@ -3,6 +3,9 @@
 // public
 #include "rodeo_types.h"
 
+// -- external --
+#include "stc/cstr.h"
+
 // -- system --
 #include <stdbool.h>
 #include <stdio.h>
@@ -68,7 +71,7 @@ void
 rodeo_window_init(
 	uint16_t screen_height,
 	uint16_t screen_width,
-	rodeo_string_t title
+	cstr title
 );
 
 void
@@ -109,7 +112,7 @@ rodeo_window_quit_set(bool quit);
 void
 rodeo_debug_text_draw(uint16_t x, uint16_t y, const char *format, ...);
 
-rodeo_string_t
+cstr
 rodeo_renderer_name_get(void);
 
 void
@@ -126,7 +129,7 @@ rodeo_texture_2d_create_from_RGBA8(
 );
 
 rodeo_texture_2d_t
-rodeo_texture_2d_create_from_path(rodeo_string_t path);
+rodeo_texture_2d_create_from_path(cstr path);
 
 void
 rodeo_texture_2d_destroy(rodeo_texture_2d_t *texture);
@@ -144,54 +147,6 @@ rodeo_texture_2d_draw(
 	const rodeo_color_RGBAFloat_t *color,
 	const rodeo_texture_2d_t *texture
 );
-
-/// --- String ---
-
-rodeo_string_t
-rodeo_string_create(const char *c_string);
-
-void
-rodeo_string_destroy(rodeo_string_t *self);
-
-char*
-rodeo_string_to_cstr(rodeo_string_t *self);
-
-const char*
-rodeo_string_to_constcstr(const rodeo_string_t *self);
-
-void
-rodeo_string_insert(
-	rodeo_string_t *self,
-	const rodeo_string_t insert,
-	intptr_t position
-);
-
-void
-rodeo_string_append(
-	rodeo_string_t *self,
-	const rodeo_string_t append
-);
-
-void
-rodeo_string_prepend(
-	rodeo_string_t *self,
-	const rodeo_string_t prepend
-);
-
-void
-rodeo_string_clear(rodeo_string_t *self);
-
-void
-rodeo_string_set(rodeo_string_t *self, char *value);
-
-rodeo_string_t
-rodeo_string_clone(const rodeo_string_t self);
-
-rodeo_string_t
-rodeo_string_format(const char *format, ...);
-
-rodeo_string_t
-rodeo_string_vargs_format(const char *format, va_list vargs);
 
 /// --- Log ---
 

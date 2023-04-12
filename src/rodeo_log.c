@@ -15,41 +15,44 @@ rodeo_log(
 	...
 )
 {
-	rodeo_string_t formatted;
+	cstr formatted;
 	mrodeo_vargs_do(format)
 	{
-		formatted = rodeo_string_vargs_format(format, vargs);
+		formatted = cstr_from_vfmt(format, vargs);
 	}
 
 	switch(loglevel)
 	{
 		case rodeo_logLevel_info:
-			rodeo_string_prepend(
+			cstr_insert(
 				&formatted,
-				rodeo_string_create("[INFO]: ")
+				0,
+				"[INFO]: "
 			);
 			break;
 		case rodeo_logLevel_warning:
-			rodeo_string_prepend(
+			cstr_insert(
 				&formatted,
-				rodeo_string_create("\033[33m[WARN]:\033[0m ")
+				0,
+				"\033[33m[WARN]:\033[0m "
 			);
 			break;
 		case rodeo_logLevel_error:
-			rodeo_string_prepend(
+			cstr_insert(
 				&formatted,
-				rodeo_string_create("\033[31;1m[ERROR]:\033[0m ")
+				0,
+				"\033[31;1m[ERROR]:\033[0m "
 			);
 			break;
 	}
-	rodeo_string_append(
+	cstr_append(
 		&formatted,
-		rodeo_string_create("\n")
+		"\n"
 	);
 
 	if(logging_function == NULL)
 	{
-		printf("%s", rodeo_string_to_constcstr(&formatted));
+		printf("%s", cstr_str(&formatted));
 	}
 	else
 	{

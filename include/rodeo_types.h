@@ -1,5 +1,8 @@
 #pragma once
 
+// external
+#include "stc/cstr.h"
+
 // system
 #include <stdbool.h>
 #include <stdint.h>
@@ -86,18 +89,6 @@ typedef struct
 rodeo_frameBuffer_2d_t;
 */
 
-/// --- String ---
-
-// taken from STC library
-// must match their layout exactly as it will be cast to it.
-// (TODO should write test cases for the string funcs)
-typedef char rodeo_string_value_t;
-typedef struct { rodeo_string_value_t* data; intptr_t size, cap; } rodeo_string_buffer_t;
-typedef union {
-    struct { rodeo_string_value_t data[sizeof(rodeo_string_buffer_t) - 1]; unsigned char size; } sml;
-    struct { rodeo_string_value_t* data; size_t size, ncap; } lon;
-} rodeo_string_t;
-
 /// --- Log ---
 
 typedef
@@ -111,7 +102,7 @@ rodeo_logLevel_t;
 
 typedef
 void
-(*rodeo_log_function)(rodeo_string_t text);
+(*rodeo_log_function)(cstr text);
 
 typedef 
 union

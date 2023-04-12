@@ -8,7 +8,6 @@ project(RodeoKit
 add_library(${PROJECT_NAME}
 	"src/rodeo.c"
 	"src/rodeo_math.c"
-	"src/rodeo_string.c"
 	"src/rodeo_log.c"
 	"src/rodeo_input.c"
 )
@@ -66,7 +65,7 @@ if(DEFINED EMSCRIPTEN)
 		PRIVATE external/bgfx/include
 		PRIVATE external/bx/include
 		PRIVATE external/cglm/include
-		PRIVATE external/STC/include
+		PUBLIC external/STC/include
 		PRIVATE src
 		PUBLIC include
 		)
@@ -133,7 +132,7 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 		PRIVATE external/bgfx/include
 		PRIVATE external/bx/include
 		PRIVATE external/cglm/include
-		PRIVATE external/STC/include
+		PUBLIC external/STC/include
 		PRIVATE src
 		PUBLIC include
 		)

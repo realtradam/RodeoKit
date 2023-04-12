@@ -19,7 +19,7 @@ void
 irodeo_render_buffer_transient_alloc(void);
 
 bgfx_shader_handle_t
-irodeo_shader_load(const rodeo_string_t path);
+irodeo_shader_load(const cstr path);
 
 void
 irodeo_random_seed_set(stc64_t seed);
