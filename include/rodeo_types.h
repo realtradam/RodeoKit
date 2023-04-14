@@ -1,9 +1,9 @@
 #pragma once
 
-// external
+// -- external --
 #include "stc/cstr.h"
 
-// system
+// -- system --
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -89,40 +89,3 @@ typedef struct
 rodeo_frameBuffer_2d_t;
 */
 
-/// --- Log ---
-
-typedef
-enum
-{
-	rodeo_logLevel_info,
-	rodeo_logLevel_warning,
-	rodeo_logLevel_error
-}
-rodeo_logLevel_t;
-
-typedef
-void
-(*rodeo_log_function)(cstr text);
-
-typedef 
-union
-{
-	struct {
-		float x;
-		float y;
-	};
-	float array[2];
-}
-rodeo_vector2_t;
-
-typedef 
-union
-{
-	struct {
-		float x;
-		float y;
-		float z;
-	};
-	float array[3];
-}
-rodeo_vector3_t;

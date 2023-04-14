@@ -1,9 +1,9 @@
 
 // -- internal --
 // public
-#include "rodeo/input_t.h"
 #include "rodeo/input.h"
 #include "irodeo_input.h"
+#include "rodeo/log.h"
 
 // -- external --
 #include "SDL2/SDL.h"
@@ -142,12 +142,18 @@ rodeo_input_scene_register_callback(
 					break;
 
 				case rodeo_input_binary_Invalid:
-					// TODO make it a log
+					rodeo_log(
+						rodeo_logLevel_error,
+						"Failed to register invalid binary input type"
+					);
 					break;
 			}
 			break;
 		case rodeo_input_type_Invalid:
-			// TODO make it log
+			rodeo_log(
+				rodeo_logLevel_error,
+				"Failed to register invalid input type"
+			);
 			break;
 	}
 }

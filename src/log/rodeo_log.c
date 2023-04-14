@@ -1,12 +1,12 @@
 
-// public internal
-#include "rodeo_types.h"
-#include "rodeo.h"
+// -- internal --
+// public
+#include "rodeo/log.h"
+#include "rodeo/common.h"
+// private
+#include "log/irodeo_log.h"
 
-// external
-#include "SDL2/SDL.h"
-
-static rodeo_log_function logging_function = NULL;
+static irodeo_log_state_t istate = {0};
 
 void
 rodeo_log(
@@ -50,19 +50,24 @@ rodeo_log(
 		"\n"
 	);
 
-	if(logging_function == NULL)
+	if(istate.logging_function == NULL)
 	{
 		printf("%s", cstr_str(&formatted));
 	}
 	else
 	{
-		logging_function(formatted);
+		istate.logging_function(formatted);
 	}
 }
 
 void
 rodeo_log_function_set(rodeo_log_function rodeo_log_func)
 {
-	logging_function = rodeo_log_func;
+	istate.logging_function = rodeo_log_func;
 }
 
+rodeo_log_function
+rodeo_log_function_get(void)
+{
+	return istate.logging_function;
+}
