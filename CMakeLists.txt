@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME}
 	"src/rodeo_math.c"
 	"src/rodeo_log.c"
 	"src/rodeo_input.c"
+	"src/input/rodeo_input.c"
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 11)
@@ -65,9 +66,12 @@ if(DEFINED EMSCRIPTEN)
 		PRIVATE external/bgfx/include
 		PRIVATE external/bx/include
 		PRIVATE external/cglm/include
-		PUBLIC external/STC/include
 		PRIVATE src
 		PUBLIC include
+		)
+	# `SYSTEM` setting ignores warnings from this external header
+	target_include_directories(${PROJECT_NAME}
+		SYSTEM PUBLIC external/STC/include
 		)
 	target_link_directories(${PROJECT_NAME}
 		PRIVATE external/bgfx
@@ -132,9 +136,12 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 		PRIVATE external/bgfx/include
 		PRIVATE external/bx/include
 		PRIVATE external/cglm/include
-		PUBLIC external/STC/include
 		PRIVATE src
 		PUBLIC include
+		)
+	# `SYSTEM` setting ignores warnings from this external header
+	target_include_directories(${PROJECT_NAME}
+		SYSTEM PUBLIC external/STC/include
 		)
 
 	target_link_directories(${PROJECT_NAME}

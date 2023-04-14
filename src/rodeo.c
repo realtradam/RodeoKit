@@ -2,6 +2,7 @@
 // public
 #include "rodeo.h"
 #include "rodeo_types.h"
+#include "rodeo/input.h"
 // private
 #include "rodeo_internal.h"
 #include "rodeo_internal_types.h"
@@ -315,13 +316,7 @@ rodeo_frame_end(void)
 
 	bgfx_frame(false);
 
-	while(SDL_PollEvent(&state.sdl_event))
-	{
-		if(state.sdl_event.type == SDL_QUIT)
-		{
-			state.quit = true;
-		}
-	}
+	state.quit = rodeo_input_events_poll();
 	#ifndef __EMSCRIPTEN__
 		irodeo_frame_stall();
 	#endif
