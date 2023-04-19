@@ -3,7 +3,7 @@
 
 # Rodeo Kit
 
-<img align="right" src="https://user-images.githubusercontent.com/11139432/233207951-1c804cf4-365e-44e8-849d-9fc1a4c49be1.gif" width="288px">  
+<img align="right" src="https://user-images.githubusercontent.com/11139432/233207951-1c804cf4-365e-44e8-849d-9fc1a4c49be1.gif">  
 
 Game development kit designed and implemented from the ground up for personal indie game development as well as learning. Inspired by the simplicity of [Raylib](https://www.raylib.com)'s design.
 
