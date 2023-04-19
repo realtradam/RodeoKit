@@ -1,13 +1,17 @@
 
-<img align="right" src="https://user-images.githubusercontent.com/11139432/233201393-5a683fd2-6661-4af9-a332-1b9b0d5e5edb.png" width="288px">
+<!-- <img align="right" src="https://user-images.githubusercontent.com/11139432/233201393-5a683fd2-6661-4af9-a332-1b9b0d5e5edb.png" width="288px">  -->
 
 # Rodeo Kit
+
+<img align="right" src="https://user-images.githubusercontent.com/11139432/233207951-1c804cf4-365e-44e8-849d-9fc1a4c49be1.gif" width="288px">  
 
 Game development kit designed and implemented from the ground up for personal indie game development as well as learning. Inspired by the simplicity of [Raylib](https://www.raylib.com)'s design.
 
 Design planning for this project is "Game Oriented", meaning that I would like to create games to stress test the implementation and see what works, what doesnt, and what is missing. The current and planned implementation is simply the "minimum" amount required to create simple game projects. Once this goal is reached, small games will be developed in tandem with this kit in order to drive its design and development.
 
 The goal of this style of design approach is to avoid over-thinking of future design, as well as to save time from implementing features that go unused.
+
+[Rodeo Kit Example](https://github.com/realtradam/rodeo_sample_game)  
 
 ## Short-Term Roadmap
 
