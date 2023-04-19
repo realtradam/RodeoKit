@@ -1,3 +1,4 @@
+
 <img align="right" src="https://user-images.githubusercontent.com/11139432/233201393-5a683fd2-6661-4af9-a332-1b9b0d5e5edb.png" width="288px">
 
 # Rodeo Kit
@@ -35,6 +36,15 @@ The goal of this style of design approach is to avoid over-thinking of future de
 - Implemented logging system with 3 different levels(info, warn, error).
 - System allows for setting your own logging function instead if the default "print to console" is not desired.
 
+### Build System
+
+- CMake build system which manages pulling dependencies from git-submodules and building them automatically as required.
+- Builds for both desktop(Linux) and web(Emscripten) platforms.
+
+#### Build System To-Do
+
+- Build for the Windows desktop platform.
+
 ## Short-Term Roadmap
 
 ### Sound
@@ -52,3 +62,4 @@ The goal of this style of design approach is to avoid over-thinking of future de
 - Bindings to an embedded version of Ruby known as mruby.
 - Create bindings directly to C versions of functions.
 - Create comfortable API on top of the direct bindings.
+
