@@ -99,6 +99,58 @@ rodeo_input_events_poll(void)
 					}
 				}
 				break;
+			case SDL_MOUSEMOTION:
+				{
+					c_foreach(i, cset_input_scene, istate.active_scenes)
+					{
+						rodeo_input_scene_t *scene = *i.ref;
+						c_foreach(j, cset_input_commands, scene->commands)
+						{
+							rodeo_input_command_t *command = *j.ref;
+							const cset_input_positional_mouse_value *x_value = cset_input_positional_mouse_get(
+									&command->unbounded_range.mouse_position,
+									rodeo_input_positional_mouse_X
+							);
+							const cset_input_positional_mouse_value *y_value = cset_input_positional_mouse_get(
+									&command->unbounded_range.mouse_position,
+									rodeo_input_positional_mouse_Y
+							);
+
+							if(x_value != NULL)
+							{
+								rodeo_input_any_state_t input_state = {
+									.data.positional_state = event.motion.x,
+									.input_type = rodeo_input_type_Positional
+								};
+								c_foreach(
+									k,
+									cset_input_callback_functions,
+									command->callbacks
+								)
+								{
+									(**k.ref)(input_state);
+								}
+							}
+
+							if(y_value != NULL)
+							{
+								rodeo_input_any_state_t input_state = {
+									.data.positional_state = event.motion.y,
+									.input_type = rodeo_input_type_Positional
+								};
+								c_foreach(
+									k,
+									cset_input_callback_functions,
+									command->callbacks
+								)
+								{
+									(**k.ref)(input_state);
+								}
+							}
+						}
+					}
+				}
+				break;
 		}
 	}
 	return false;
@@ -228,6 +280,30 @@ rodeo_input_command_register_binary_mouseButton(
 		cset_input_binary_mouseButtons_insert(
 			&input_command->binary.mouse_buttons,
 			mouse_button
+		);
+		return true;
+	}
+}
+
+bool
+rodeo_input_command_register_positional_mouse(
+	rodeo_input_command_t *input_command,
+	rodeo_input_positional_mouse_t mouse_axis
+)
+{
+	if((rodeo_input_type_Positional & input_command->valid_types) == 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Attempting to register input type which is invalid for this input command, failed to do so"
+		);
+		return false;
+	}
+	else
+	{
+		cset_input_positional_mouse_insert(
+			&input_command->unbounded_range.mouse_position,
+			mouse_axis
 		);
 		return true;
 	}

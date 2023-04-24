@@ -149,11 +149,3 @@ rodeo_frame_limit_set(uint32_t limit);
 
 uint32_t
 rodeo_frame_limit_get(void);
-
-/// --- Input ---
-
-int32_t
-rodeo_input_mouse_x_get(void);
-
-int32_t
-rodeo_input_mouse_y_get(void);

@@ -25,12 +25,12 @@ The goal of this style of design approach is to avoid over-thinking of future de
 
 - [x] Callback event-based input system.
 - [x] Bind inputs(such as character keys) to function pointers. Once the key is pressed the function is called.
-- [ ] Abstract into "commands" which allows naming, adding functions, adding multiple inputs, and assigning to "scenes" that can be enabled or disabled.  
+- [x] Abstract into "commands" which allows adding functions, adding multiple inputs, and assigning to "scenes" that can be enabled or disabled.  
 - [ ] Implementing further input abstractions by 4 categories:  
     - [x] Binary (such as keys on a keyboard, or buttons on a controller)
     - [ ] Bounded Range (such as the x and y joysticks on a controller)
     - [ ] Unbounded Range (such as the x and y mouse delta)
-    - [ ] Positional (such as the position of a mouse)
+    - [x] Positional (such as the position of a mouse)
 
 ### Logging
 

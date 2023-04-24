@@ -9,7 +9,6 @@ add_library(${PROJECT_NAME}
 	"src/rodeo.c"
 	"src/rodeo_math.c"
 	"src/log/rodeo_log.c"
-	"src/rodeo_input.c"
 	"src/input/rodeo_input.c"
 )
 

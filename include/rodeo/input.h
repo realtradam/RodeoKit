@@ -45,6 +45,12 @@ rodeo_input_command_register_binary_mouseButton(
 	rodeo_input_binary_mouseButton_t mouse_button
 );
 
+bool
+rodeo_input_command_register_positional_mouse(
+	rodeo_input_command_t *input_command,
+	rodeo_input_positional_mouse_t mouse_position
+);
+
 // alternative proposed "general" registration methods
 //rodeo_input_command_register_binary(cmd, rodeo_input_binary_Scancode, rodeo_input_binary_scancode_Q );
 //rodeo_input_command_register_any(cmd, rodeo_input_type_Binary, rodeo_input_binary_Scancode, rodeo_input_binary_scancode_Q );
