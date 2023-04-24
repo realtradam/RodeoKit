@@ -29,7 +29,7 @@ The goal of this style of design approach is to avoid over-thinking of future de
 - [ ] Implementing further input abstractions by 4 categories:  
     - [x] Binary (such as keys on a keyboard, or buttons on a controller)
     - [ ] Bounded Range (such as the x and y joysticks on a controller)
-    - [ ] Unbounded Range (such as the x and y mouse delta)
+    - [x] Unbounded Range (such as the x and y mouse delta)
     - [x] Positional (such as the position of a mouse)
 
 ### Logging
