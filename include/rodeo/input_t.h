@@ -766,11 +766,24 @@ rodeo_input_binary_mouseButton_t;
 typedef
 enum
 {
-	rodeo_input_positional_mouse_Invalid = 0,
-	rodeo_input_positional_mouse_X = 1,
-	rodeo_input_positional_mouse_Y = 2
+	rodeo_input_positional_mouse_Invalid = -1,
+	rodeo_input_positional_mouse_X,
+	rodeo_input_positional_mouse_Y
 }
 rodeo_input_positional_mouse_t;
+
+typedef
+enum
+{
+	rodeo_input_boundedRange_controllerAxis_Invalid = -1,
+	rodeo_input_boundedRange_controllerAxisLeft_X = 0,
+	rodeo_input_boundedRange_controllerAxisLeft_Y = 1,
+	rodeo_input_boundedRange_controllerAxisRight_X = 2,
+	rodeo_input_boundedRange_controllerAxisRight_Y = 3,
+	rodeo_input_boundedRange_controllerAxisTriggerLeft_X = 4,
+	rodeo_input_boundedRange_controllerAxisTriggerRight_Y = 5,
+}
+rodeo_input_boundedRange_controllerAxis_t;
 
 typedef
 enum
@@ -787,10 +800,14 @@ enum
 	rodeo_input_type_Invalid = (1 << 0),
 	rodeo_input_type_Binary  = (1 << 1),
 	rodeo_input_type_Positional  = (1 << 2),
-	rodeo_input_type_UnboundedRange  = (1 << 3),
+	rodeo_input_type_BoundedRange  = (1 << 3),
+	rodeo_input_type_UnboundedRange  = (1 << 4),
 }
 rodeo_input_type_t ;
 
+/*
+ * needed for alternative registration
+ * uncomment this for when that is being implemented
 typedef
 enum
 {
@@ -800,6 +817,30 @@ enum
 }
 rodeo_input_binary_type_t;
 
+typedef
+enum
+{
+	rodeo_input_positional_Invalid = 0,
+	rodeo_input_positional_Mouse
+}
+rodeo_input_positional_type_t;
+
+typedef
+enum
+{
+	rodeo_input_boundedRange_Invalid = 0,
+	rodeo_input_boundedRange_Joystick
+}
+rodeo_input_boundedRange_type_t;
+
+typedef
+enum
+{
+	rodeo_input_unboundedRange_Invalid = 0,
+	rodeo_input_unboundedRange_Mouse
+}
+rodeo_input_unboundedRange_type_t;
+*/
 
 typedef
 enum
@@ -811,6 +852,9 @@ rodeo_input_binary_state_t;
 
 typedef int64_t rodeo_input_positional_state_t;
 
+// ranges between -1.0 and +1.0
+typedef float rodeo_input_boundedRange_state_t;
+
 typedef float rodeo_input_unboundedRange_state_t;
 
 typedef
@@ -820,17 +864,19 @@ struct
 	{
 		rodeo_input_binary_state_t binary_state;
 		rodeo_input_positional_state_t positional_state;
+		rodeo_input_boundedRange_state_t bounded_range_state;
 		rodeo_input_unboundedRange_state_t unbounded_range_state;
 	}
 	data;
-	rodeo_input_type_t  input_type;
+	rodeo_input_type_t type;
 }
 rodeo_input_any_state_t;
 
 typedef
-void
+void*
 (*rodeo_input_callback_function)(
-	rodeo_input_any_state_t state
+	rodeo_input_any_state_t *state,
+	void *data
 );
 
 #define i_val rodeo_input_callback_function
@@ -849,6 +895,10 @@ void
 #define i_tag input_positional_mouse
 #include <stc/cset.h>
 
+#define i_val rodeo_input_boundedRange_controllerAxis_t
+#define i_tag input_boundedRange_controllerAxis
+#include <stc/cset.h>
+
 #define i_val rodeo_input_unboundedRange_mouse_t
 #define i_tag input_unboundedRange_mouse
 #include <stc/cset.h>
@@ -860,7 +910,6 @@ struct
 
 	cset_input_callback_functions callbacks;
 
-	// binary
 	struct
 	{
 		cset_input_binary_scancodes scancodes;
@@ -868,17 +917,21 @@ struct
 	}
 	binary;
 
-	// positional
 	struct
 	{
-		cset_input_positional_mouse mouse_position;
+		cset_input_positional_mouse mouse_axes;
 	}
 	positional;
 
-	// unbounded range
 	struct
 	{
-		cset_input_unboundedRange_mouse mouse_delta;
+		cset_input_boundedRange_controllerAxis controller_axes;
+	}
+	bounded_range;
+	
+	struct
+	{
+		cset_input_unboundedRange_mouse mouse_axes;
 	}
 	unbounded_range;
 	

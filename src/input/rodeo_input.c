@@ -44,9 +44,9 @@ rodeo_input_events_poll(void)
 							}
 							else
 							{
-								rodeo_input_any_state_t key_state = {
+								rodeo_input_any_state_t input_state = {
 									.data.binary_state = event.key.state,
-									.input_type = rodeo_input_type_Binary
+									.type = rodeo_input_type_Binary
 								};
 								c_foreach(
 									k,
@@ -54,7 +54,7 @@ rodeo_input_events_poll(void)
 									command->callbacks
 								)
 								{
-									(**k.ref)(key_state);
+									(**k.ref)(&input_state, NULL);
 								}
 							}
 						}
@@ -84,7 +84,7 @@ rodeo_input_events_poll(void)
 							{
 								rodeo_input_any_state_t input_state = {
 									.data.binary_state = event.button.state,
-									.input_type = rodeo_input_type_Binary
+									.type = rodeo_input_type_Binary
 								};
 								c_foreach(
 									k,
@@ -92,7 +92,7 @@ rodeo_input_events_poll(void)
 									command->callbacks
 								)
 								{
-									(**k.ref)(input_state);
+									(**k.ref)(&input_state, NULL);
 								}
 							}
 						}
@@ -108,21 +108,21 @@ rodeo_input_events_poll(void)
 						{
 							rodeo_input_command_t *command = *j.ref;
 							const cset_input_positional_mouse_value *x_value = cset_input_positional_mouse_get(
-									&command->positional.mouse_position,
+									&command->positional.mouse_axes,
 									rodeo_input_positional_mouse_X
 								);
 							const cset_input_positional_mouse_value *y_value = cset_input_positional_mouse_get(
-									&command->positional.mouse_position,
+									&command->positional.mouse_axes,
 									rodeo_input_positional_mouse_Y
 								);
 							const cset_input_unboundedRange_mouse_value *rel_x_value =
 								cset_input_unboundedRange_mouse_get(
-									&command->unbounded_range.mouse_delta, 
+									&command->unbounded_range.mouse_axes, 
 									rodeo_input_unboundedRange_mouse_X
 								);
 							const cset_input_unboundedRange_mouse_value *rel_y_value =
 								cset_input_unboundedRange_mouse_get(
-									&command->unbounded_range.mouse_delta, 
+									&command->unbounded_range.mouse_axes, 
 									rodeo_input_unboundedRange_mouse_Y
 								);
 
@@ -130,7 +130,7 @@ rodeo_input_events_poll(void)
 							{
 								rodeo_input_any_state_t input_state = {
 									.data.positional_state = event.motion.x,
-									.input_type = rodeo_input_type_Positional
+									.type = rodeo_input_type_Positional
 								};
 								c_foreach(
 									k,
@@ -138,7 +138,7 @@ rodeo_input_events_poll(void)
 									command->callbacks
 								)
 								{
-									(**k.ref)(input_state);
+									(**k.ref)(&input_state, NULL);
 								}
 							}
 
@@ -146,7 +146,7 @@ rodeo_input_events_poll(void)
 							{
 								rodeo_input_any_state_t input_state = {
 									.data.positional_state = event.motion.y,
-									.input_type = rodeo_input_type_Positional
+									.type = rodeo_input_type_Positional
 								};
 								c_foreach(
 									k,
@@ -154,14 +154,14 @@ rodeo_input_events_poll(void)
 									command->callbacks
 								)
 								{
-									(**k.ref)(input_state);
+									(**k.ref)(&input_state, NULL);
 								}
 							}
 							if(rel_x_value != NULL)
 							{
 								rodeo_input_any_state_t input_state = {
 									.data.unbounded_range_state = (float)event.motion.xrel,
-									.input_type = rodeo_input_type_UnboundedRange
+									.type = rodeo_input_type_UnboundedRange
 								};
 								c_foreach(
 									k,
@@ -169,7 +169,7 @@ rodeo_input_events_poll(void)
 									command->callbacks
 								)
 								{
-									(**k.ref)(input_state);
+									(**k.ref)(&input_state, NULL);
 								}
 							}
 
@@ -177,7 +177,7 @@ rodeo_input_events_poll(void)
 							{
 								rodeo_input_any_state_t input_state = {
 									.data.unbounded_range_state = (float)event.motion.yrel,
-									.input_type = rodeo_input_type_UnboundedRange
+									.type = rodeo_input_type_UnboundedRange
 								};
 								c_foreach(
 									k,
@@ -185,11 +185,39 @@ rodeo_input_events_poll(void)
 									command->callbacks
 								)
 								{
-									(**k.ref)(input_state);
+									(**k.ref)(&input_state, NULL);
 								}
 							}
 						}
 					}
+				}
+				break;
+			case SDL_CONTROLLERAXISMOTION:
+				{
+					c_foreach(i, cset_input_scene, istate.active_scenes)
+					{
+						rodeo_input_scene_t *scene = *i.ref;
+						c_foreach(j, cset_input_commands, scene->commands)
+						{
+							rodeo_input_command_t *command = *j.ref;
+							if(cset_input_boundedRange_controllerAxis_contains(&command->bounded_range.controller_axes, event.caxis.axis))
+							{
+									rodeo_input_any_state_t input_state = {
+										.data.bounded_range_state = (float)event.caxis.value,
+										.type = rodeo_input_type_BoundedRange
+									};
+									c_foreach(
+										k,
+										cset_input_callback_functions,
+										command->callbacks
+									)
+									{
+										(**k.ref)(&input_state, NULL);
+									}
+								}
+							}
+
+						}
 				}
 				break;
 		}
@@ -259,12 +287,12 @@ rodeo_input_scene_destroy(rodeo_input_scene_t *scene)
 }
 
 rodeo_input_command_t*
-rodeo_input_command_create(uint32_t input_type)
+rodeo_input_command_create(uint32_t input_types)
 {
 	rodeo_input_command_t *result = malloc(sizeof(rodeo_input_command_t));
 	*result = (rodeo_input_command_t)
 	{
-		.valid_types = input_type
+		.valid_types = input_types
 	};
 	return result;
 }
@@ -343,7 +371,7 @@ rodeo_input_command_register_positional_mouse(
 	else
 	{
 		cset_input_positional_mouse_insert(
-			&input_command->positional.mouse_position,
+			&input_command->positional.mouse_axes,
 			mouse_axis
 		);
 		return true;
@@ -367,7 +395,7 @@ rodeo_input_command_register_unboundedRange_mouse(
 	else
 	{
 		cset_input_unboundedRange_mouse_insert(
-			&input_command->unbounded_range.mouse_delta,
+			&input_command->unbounded_range.mouse_axes,
 			mouse_axis
 		);
 		return true;

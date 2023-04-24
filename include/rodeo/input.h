@@ -25,7 +25,7 @@ void
 rodeo_input_scene_destroy(rodeo_input_scene_t *scene);
 
 rodeo_input_command_t*
-rodeo_input_command_create(uint32_t input_type);
+rodeo_input_command_create(uint32_t input_types);
 
 // make sure to unregister from all scenes before destroying
 void
