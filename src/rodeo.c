@@ -306,6 +306,8 @@ rodeo_frame_begin(void)
 
 	irodeo_render_buffer_transient_alloc();
 
+	state.quit = rodeo_input_events_poll();
+
 	state.start_frame = state.end_frame;
 }
 
@@ -316,7 +318,6 @@ rodeo_frame_end(void)
 
 	bgfx_frame(false);
 
-	state.quit = rodeo_input_events_poll();
 	#ifndef __EMSCRIPTEN__
 		irodeo_frame_stall();
 	#endif

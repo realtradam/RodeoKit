@@ -9,3 +9,4 @@
 -Wextra
 -Wpedantic
 -Wconversion
+-std=c99
