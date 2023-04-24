@@ -108,13 +108,23 @@ rodeo_input_events_poll(void)
 						{
 							rodeo_input_command_t *command = *j.ref;
 							const cset_input_positional_mouse_value *x_value = cset_input_positional_mouse_get(
-									&command->unbounded_range.mouse_position,
+									&command->positional.mouse_position,
 									rodeo_input_positional_mouse_X
-							);
+								);
 							const cset_input_positional_mouse_value *y_value = cset_input_positional_mouse_get(
-									&command->unbounded_range.mouse_position,
+									&command->positional.mouse_position,
 									rodeo_input_positional_mouse_Y
-							);
+								);
+							const cset_input_unboundedRange_mouse_value *rel_x_value =
+								cset_input_unboundedRange_mouse_get(
+									&command->unbounded_range.mouse_delta, 
+									rodeo_input_unboundedRange_mouse_X
+								);
+							const cset_input_unboundedRange_mouse_value *rel_y_value =
+								cset_input_unboundedRange_mouse_get(
+									&command->unbounded_range.mouse_delta, 
+									rodeo_input_unboundedRange_mouse_Y
+								);
 
 							if(x_value != NULL)
 							{
@@ -137,6 +147,37 @@ rodeo_input_events_poll(void)
 								rodeo_input_any_state_t input_state = {
 									.data.positional_state = event.motion.y,
 									.input_type = rodeo_input_type_Positional
+								};
+								c_foreach(
+									k,
+									cset_input_callback_functions,
+									command->callbacks
+								)
+								{
+									(**k.ref)(input_state);
+								}
+							}
+							if(rel_x_value != NULL)
+							{
+								rodeo_input_any_state_t input_state = {
+									.data.unbounded_range_state = (float)event.motion.xrel,
+									.input_type = rodeo_input_type_UnboundedRange
+								};
+								c_foreach(
+									k,
+									cset_input_callback_functions,
+									command->callbacks
+								)
+								{
+									(**k.ref)(input_state);
+								}
+							}
+
+							if(rel_y_value != NULL)
+							{
+								rodeo_input_any_state_t input_state = {
+									.data.unbounded_range_state = (float)event.motion.yrel,
+									.input_type = rodeo_input_type_UnboundedRange
 								};
 								c_foreach(
 									k,
@@ -302,7 +343,31 @@ rodeo_input_command_register_positional_mouse(
 	else
 	{
 		cset_input_positional_mouse_insert(
-			&input_command->unbounded_range.mouse_position,
+			&input_command->positional.mouse_position,
+			mouse_axis
+		);
+		return true;
+	}
+}
+
+bool
+rodeo_input_command_register_unboundedRange_mouse(
+	rodeo_input_command_t *input_command,
+	rodeo_input_unboundedRange_mouse_t mouse_axis
+)
+{
+	if((rodeo_input_type_UnboundedRange & input_command->valid_types) == 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Attempting to register input type which is invalid for this input command, failed to do so"
+		);
+		return false;
+	}
+	else
+	{
+		cset_input_unboundedRange_mouse_insert(
+			&input_command->unbounded_range.mouse_delta,
 			mouse_axis
 		);
 		return true;

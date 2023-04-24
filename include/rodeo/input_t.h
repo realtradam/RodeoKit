@@ -766,6 +766,7 @@ rodeo_input_binary_mouseButton_t;
 typedef
 enum
 {
+	rodeo_input_positional_mouse_Invalid = 0,
 	rodeo_input_positional_mouse_X = 1,
 	rodeo_input_positional_mouse_Y = 2
 }
@@ -774,9 +775,19 @@ rodeo_input_positional_mouse_t;
 typedef
 enum
 {
+	rodeo_input_unboundedRange_mouse_Invalid = 0,
+	rodeo_input_unboundedRange_mouse_X = 1,
+	rodeo_input_unboundedRange_mouse_Y = 2
+}
+rodeo_input_unboundedRange_mouse_t;
+
+typedef
+enum
+{
 	rodeo_input_type_Invalid = (1 << 0),
 	rodeo_input_type_Binary  = (1 << 1),
 	rodeo_input_type_Positional  = (1 << 2),
+	rodeo_input_type_UnboundedRange  = (1 << 3),
 }
 rodeo_input_type_t ;
 
@@ -800,6 +811,8 @@ rodeo_input_binary_state_t;
 
 typedef int64_t rodeo_input_positional_state_t;
 
+typedef float rodeo_input_unboundedRange_state_t;
+
 typedef
 struct
 {
@@ -807,6 +820,7 @@ struct
 	{
 		rodeo_input_binary_state_t binary_state;
 		rodeo_input_positional_state_t positional_state;
+		rodeo_input_unboundedRange_state_t unbounded_range_state;
 	}
 	data;
 	rodeo_input_type_t  input_type;
@@ -835,6 +849,10 @@ void
 #define i_tag input_positional_mouse
 #include <stc/cset.h>
 
+#define i_val rodeo_input_unboundedRange_mouse_t
+#define i_tag input_unboundedRange_mouse
+#include <stc/cset.h>
+
 typedef
 struct
 {
@@ -850,10 +868,17 @@ struct
 	}
 	binary;
 
-	// unbounded range
+	// positional
 	struct
 	{
 		cset_input_positional_mouse mouse_position;
+	}
+	positional;
+
+	// unbounded range
+	struct
+	{
+		cset_input_unboundedRange_mouse mouse_delta;
 	}
 	unbounded_range;
 	

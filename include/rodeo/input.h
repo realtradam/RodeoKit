@@ -48,7 +48,13 @@ rodeo_input_command_register_binary_mouseButton(
 bool
 rodeo_input_command_register_positional_mouse(
 	rodeo_input_command_t *input_command,
-	rodeo_input_positional_mouse_t mouse_position
+	rodeo_input_positional_mouse_t mouse_axis
+);
+
+bool
+rodeo_input_command_register_unboundedRange_mouse(
+	rodeo_input_command_t *input_command,
+	rodeo_input_unboundedRange_mouse_t mouse_axis
 );
 
 // alternative proposed "general" registration methods
