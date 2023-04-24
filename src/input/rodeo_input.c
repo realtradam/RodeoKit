@@ -2,7 +2,6 @@
 // -- internal --
 // public
 #include "rodeo/input.h"
-#include "irodeo_input.h"
 #include "irodeo_input_t.h"
 #include "rodeo/log.h"
 
