@@ -720,6 +720,8 @@ typedef enum
 }
 rodeo_input_binary_keycode_t;
 
+
+
 /**
  * \brief Enumeration of valid key mods (possibly OR'd together).
  */
@@ -760,6 +762,33 @@ enum
 	rodeo_input_binary_mouseButton_X2      = 5,
 }
 rodeo_input_binary_mouseButton_t;
+
+typedef enum
+{
+    rodeo_input_binary_controllerButton_INVALID = -1,
+    rodeo_input_binary_controllerButton_A,
+    rodeo_input_binary_controllerButton_B,
+    rodeo_input_binary_controllerButton_X,
+    rodeo_input_binary_controllerButton_Y,
+    rodeo_input_binary_controllerButton_BACK,
+    rodeo_input_binary_controllerButton_GUIDE,
+    rodeo_input_binary_controllerButton_START,
+    rodeo_input_binary_controllerButton_LEFTSTICK,
+    rodeo_input_binary_controllerButton_RIGHTSTICK,
+    rodeo_input_binary_controllerButton_LEFTSHOULDER,
+    rodeo_input_binary_controllerButton_RIGHTSHOULDER,
+    rodeo_input_binary_controllerButton_DPAD_UP,
+    rodeo_input_binary_controllerButton_DPAD_DOWN,
+    rodeo_input_binary_controllerButton_DPAD_LEFT,
+    rodeo_input_binary_controllerButton_DPAD_RIGHT,
+    rodeo_input_binary_controllerButton_MISC1,    /* Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button */
+    rodeo_input_binary_controllerButton_PADDLE1,  /* Xbox Elite paddle P1 (upper left, facing the back) */
+    rodeo_input_binary_controllerButton_PADDLE2,  /* Xbox Elite paddle P3 (upper right, facing the back) */
+    rodeo_input_binary_controllerButton_PADDLE3,  /* Xbox Elite paddle P2 (lower left, facing the back) */
+    rodeo_input_binary_controllerButton_PADDLE4,  /* Xbox Elite paddle P4 (lower right, facing the back) */
+    rodeo_input_binary_controllerButton_TOUCHPAD, /* PS4/PS5 touchpad button */
+    rodeo_input_binary_controllerButton_MAX
+} rodeo_input_binary_controllerButton_t;
 
 // - SDL code end -
 
@@ -903,6 +932,10 @@ void*
 #define i_tag input_unboundedRange_mouse
 #include <stc/cset.h>
 
+#define i_val rodeo_input_binary_controllerButton_t
+#define i_tag input_binary_controllerButton
+#include <stc/cset.h>
+
 typedef
 struct
 {
@@ -914,6 +947,7 @@ struct
 	{
 		cset_input_binary_scancodes scancodes;
 		cset_input_binary_mouseButtons mouse_buttons;
+		cset_input_binary_controllerButton controller_buttons;
 	}
 	binary;
 

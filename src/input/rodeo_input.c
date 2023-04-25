@@ -192,22 +192,41 @@ rodeo_input_events_poll(void)
 					}
 				}
 				break;
-			case SDL_CONTROLLERDEVICEADDED:
+			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_CONTROLLERBUTTONUP:
 				{
-					irodeo_input_controller_register(event.cdevice.which);
-				}
-				break;
-			case SDL_CONTROLLERDEVICEREMOVED:
-				{
-					irodeo_input_controller_unregister(event.cdevice.which);
-				}
-				break;
-			case SDL_CONTROLLERDEVICEREMAPPED:
-				{
-					rodeo_log(
-						rodeo_logLevel_warning,
-						"SDL Controller device was remapped"
-					);
+					c_foreach(i, cset_input_scene, istate.active_scenes)
+					{
+						rodeo_input_scene_t *scene = *i.ref;
+						c_foreach(j, cset_input_commands, scene->commands)
+						{
+							rodeo_input_command_t *command = *j.ref;
+							const cset_input_binary_controllerButton_value *value = cset_input_binary_controllerButton_get(
+									&command->binary.controller_buttons,
+									(rodeo_input_binary_controllerButton_t)event.cbutton.button
+							);
+
+							if(value == NULL)
+							{
+								continue;
+							}
+							else
+							{
+								rodeo_input_any_state_t input_state = {
+									.data.binary_state = event.cbutton.state,
+									.type = rodeo_input_type_Binary
+								};
+								c_foreach(
+									k,
+									cset_input_callback_functions,
+									command->callbacks
+								)
+								{
+									(**k.ref)(&input_state, NULL);
+								}
+							}
+						}
+					}
 				}
 				break;
 			case SDL_CONTROLLERAXISMOTION:
@@ -239,15 +258,23 @@ rodeo_input_events_poll(void)
 						}
 				}
 				break;
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP:
-			case SDL_JOYBUTTONDOWN:
-			case SDL_JOYBUTTONUP:
-			case SDL_JOYAXISMOTION:
-					//rodeo_log(
-					//	rodeo_logLevel_info,
-					//	"controller event"
-					//);
+			case SDL_CONTROLLERDEVICEADDED:
+				{
+					irodeo_input_controller_register(event.cdevice.which);
+				}
+				break;
+			case SDL_CONTROLLERDEVICEREMOVED:
+				{
+					irodeo_input_controller_unregister(event.cdevice.which);
+				}
+				break;
+			case SDL_CONTROLLERDEVICEREMAPPED:
+				{
+					rodeo_log(
+						rodeo_logLevel_warning,
+						"SDL Controller device was remapped"
+					);
+				}
 				break;
 		}
 	}
@@ -354,6 +381,30 @@ rodeo_input_command_register_binary_scancode(
 		cset_input_binary_scancodes_insert(
 			&input_command->binary.scancodes,
 			scancode
+		);
+		return true;
+	}
+}
+
+bool
+rodeo_input_command_register_binary_controllerButton(
+	rodeo_input_command_t *input_command,
+	rodeo_input_binary_controllerButton_t button
+)
+{
+	if((rodeo_input_type_Binary & input_command->valid_types) == 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Attempting to register input type which is invalid for this input command, failed to do so"
+		);
+		return false;
+	}
+	else
+	{
+		cset_input_binary_controllerButton_insert(
+			&input_command->binary.controller_buttons,
+			button
 		);
 		return true;
 	}

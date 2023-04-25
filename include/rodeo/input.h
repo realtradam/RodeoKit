@@ -40,6 +40,12 @@ rodeo_input_command_register_binary_scancode(
 );
 
 bool
+rodeo_input_command_register_binary_controllerButton(
+	rodeo_input_command_t *input_command,
+	rodeo_input_binary_controllerButton_t button
+);
+
+bool
 rodeo_input_command_register_binary_mouseButton(
 	rodeo_input_command_t *input_command,
 	rodeo_input_binary_mouseButton_t mouse_button
