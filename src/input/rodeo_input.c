@@ -192,6 +192,24 @@ rodeo_input_events_poll(void)
 					}
 				}
 				break;
+			case SDL_CONTROLLERDEVICEADDED:
+				{
+					irodeo_input_controller_register(event.cdevice.which);
+				}
+				break;
+			case SDL_CONTROLLERDEVICEREMOVED:
+				{
+					irodeo_input_controller_unregister(event.cdevice.which);
+				}
+				break;
+			case SDL_CONTROLLERDEVICEREMAPPED:
+				{
+					rodeo_log(
+						rodeo_logLevel_warning,
+						"SDL Controller device was remapped"
+					);
+				}
+				break;
 			case SDL_CONTROLLERAXISMOTION:
 				{
 					c_foreach(i, cset_input_scene, istate.active_scenes)
@@ -203,7 +221,8 @@ rodeo_input_events_poll(void)
 							if(cset_input_boundedRange_controllerAxis_contains(&command->bounded_range.controller_axes, event.caxis.axis))
 							{
 									rodeo_input_any_state_t input_state = {
-										.data.bounded_range_state = (float)event.caxis.value,
+										.data.bounded_range_state =
+											(float)event.caxis.value/(float)UINT16_MAX,
 										.type = rodeo_input_type_BoundedRange
 									};
 									c_foreach(
@@ -219,6 +238,16 @@ rodeo_input_events_poll(void)
 
 						}
 				}
+				break;
+			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_CONTROLLERBUTTONUP:
+			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYBUTTONUP:
+			case SDL_JOYAXISMOTION:
+					//rodeo_log(
+					//	rodeo_logLevel_info,
+					//	"controller event"
+					//);
 				break;
 		}
 	}
@@ -379,6 +408,30 @@ rodeo_input_command_register_positional_mouse(
 }
 
 bool
+rodeo_input_command_register_boundedRange_controllerAxis(
+	rodeo_input_command_t *input_command,
+	rodeo_input_boundedRange_controllerAxis_t controller_axis
+)
+{
+	if((rodeo_input_type_BoundedRange & input_command->valid_types) == 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Attempting to register input type which is invalid for this input command, failed to do so"
+		);
+		return false;
+	}
+	else
+	{
+		cset_input_boundedRange_controllerAxis_insert(
+			&input_command->bounded_range.controller_axes,
+			controller_axis
+		);
+		return true;
+	}
+}
+
+bool
 rodeo_input_command_register_unboundedRange_mouse(
 	rodeo_input_command_t *input_command,
 	rodeo_input_unboundedRange_mouse_t mouse_axis
@@ -436,4 +489,36 @@ void
 rodeo_input_scene_deactivate(rodeo_input_scene_t *scene)
 {
 	cset_input_scene_erase(&istate.active_scenes, scene);
+}
+
+#define i_key int32_t
+#define i_val SDL_GameController*
+#define i_tag SDL_GameController
+#include "stc/cmap.h"
+
+static cmap_SDL_GameController icontrollers = {0};
+
+void
+irodeo_input_controller_register(int32_t id)
+{
+	if(SDL_IsGameController(id))
+	{
+		SDL_GameController *controller = SDL_GameControllerOpen(id);
+		cmap_SDL_GameController_insert(&icontrollers, id, controller);
+	}
+	else
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Invalid controller id, cannot register"
+		);
+	}
+}
+
+void
+irodeo_input_controller_unregister(int32_t id)
+{
+	SDL_GameController *controller = cmap_SDL_GameController_get(&icontrollers, id)->second;
+	SDL_GameControllerClose(controller);
+	cmap_SDL_GameController_erase(&icontrollers, id);
 }

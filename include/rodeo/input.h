@@ -52,6 +52,12 @@ rodeo_input_command_register_positional_mouse(
 );
 
 bool
+rodeo_input_command_register_boundedRange_controllerAxis(
+	rodeo_input_command_t *input_command,
+	rodeo_input_boundedRange_controllerAxis_t controller_axis
+);
+
+bool
 rodeo_input_command_register_unboundedRange_mouse(
 	rodeo_input_command_t *input_command,
 	rodeo_input_unboundedRange_mouse_t mouse_axis
@@ -61,7 +67,6 @@ rodeo_input_command_register_unboundedRange_mouse(
 //rodeo_input_command_register_binary(cmd, rodeo_input_binary_Scancode, rodeo_input_binary_scancode_Q );
 //rodeo_input_command_register_any(cmd, rodeo_input_type_Binary, rodeo_input_binary_Scancode, rodeo_input_binary_scancode_Q );
 	
-
 void
 rodeo_input_scene_register_command(
 	rodeo_input_scene_t *scene,
@@ -84,3 +89,8 @@ rodeo_input_scene_deactivate(
 	rodeo_input_scene_t *scene
 );
 
+void
+irodeo_input_controller_register(int32_t id);
+
+void
+irodeo_input_controller_unregister(int32_t id);

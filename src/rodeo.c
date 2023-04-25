@@ -43,7 +43,8 @@ rodeo_window_init(
 		rodeo_logLevel_info,
 		"Initializing SDL..."
 	);
-	if(SDL_Init(SDL_INIT_VIDEO) < 0)
+
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
