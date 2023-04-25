@@ -440,6 +440,7 @@ rodeo_input_binary_scancode_t;
 #define mrodeo_input_binary_scancode_mask (1<<30)
 #define mrodeo_input_binary_scancode_maskshift(X)  (X | mrodeo_input_binary_scancode_mask)
 
+/*
 typedef enum
 {
     rodeo_input_binary_keycode_UNKNOWN = 0,
@@ -482,9 +483,7 @@ typedef enum
     rodeo_input_binary_keycode_QUESTION = '?',
     rodeo_input_binary_keycode_AT = '@',
 
-    /*
-       Skip uppercase letters
-     */
+    // Skip uppercase letters
 
     rodeo_input_binary_keycode_LEFTBRACKET = '[',
     rodeo_input_binary_keycode_BACKSLASH = '\\',
@@ -719,12 +718,14 @@ typedef enum
     rodeo_input_binary_keycode_ENDCALL = mrodeo_input_binary_scancode_maskshift(rodeo_input_binary_scancode_ENDCALL)
 }
 rodeo_input_binary_keycode_t;
+*/
 
 
 
 /**
  * \brief Enumeration of valid key mods (possibly OR'd together).
  */
+
 typedef
 enum
 {
@@ -754,12 +755,12 @@ rodeo_input_keymod_t;
 typedef
 enum
 {
-	rodeo_input_binary_mouseButton_INVALID = 0,
-	rodeo_input_binary_mouseButton_LEFT    = 1,
-	rodeo_input_binary_mouseButton_MIDDLE  = 2,
-	rodeo_input_binary_mouseButton_RIGHT   = 3,
-	rodeo_input_binary_mouseButton_X1      = 4,
-	rodeo_input_binary_mouseButton_X2      = 5,
+	rodeo_input_binary_mouseButton_INVALID = -1,
+	rodeo_input_binary_mouseButton_LEFT    =  1,
+	rodeo_input_binary_mouseButton_MIDDLE  =  2,
+	rodeo_input_binary_mouseButton_RIGHT   =  3,
+	rodeo_input_binary_mouseButton_X1      =  4,
+	rodeo_input_binary_mouseButton_X2      =  5,
 }
 rodeo_input_binary_mouseButton_t;
 
