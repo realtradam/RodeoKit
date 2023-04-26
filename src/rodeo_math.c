@@ -20,10 +20,10 @@ rodeo_color_RGBA8_t
 rodeo_color_RGBAFloat_to_RGBA8(const rodeo_color_RGBAFloat_t color)
 {
 	return (rodeo_color_RGBA8_t){
-		.red = (uint8_t)((color.red * (float)UINT8_MAX) + 0.5),
-		.green = (uint8_t)((color.green * (float)UINT8_MAX) + 0.5),
-		.blue = (uint8_t)((color.blue * (float)UINT8_MAX) + 0.5),
-		.alpha = (uint8_t)((color.alpha * (float)UINT8_MAX) + 0.5),
+		.colors.red = (uint8_t)((color.colors.red * (float)UINT8_MAX) + 0.5),
+		.colors.green = (uint8_t)((color.colors.green * (float)UINT8_MAX) + 0.5),
+		.colors.blue = (uint8_t)((color.colors.blue * (float)UINT8_MAX) + 0.5),
+		.colors.alpha = (uint8_t)((color.colors.alpha * (float)UINT8_MAX) + 0.5),
 	};
 }
 
@@ -31,10 +31,10 @@ rodeo_color_RGBAFloat_t
 rodeo_color_RGBA8_to_RGBAFloat(const rodeo_color_RGBA8_t color)
 {
 	return (rodeo_color_RGBAFloat_t){
-		.red = (float)color.red / 255.0f,
-		.green = (float)color.green / 255.0f,
-		.blue = (float)color.blue / 255.0f,
-		.alpha = (float)color.alpha / 255.0f,
+		.colors.red = (float)color.colors.red / 255.0f,
+		.colors.green = (float)color.colors.green / 255.0f,
+		.colors.blue = (float)color.colors.blue / 255.0f,
+		.colors.alpha = (float)color.colors.alpha / 255.0f,
 	};
 }
 

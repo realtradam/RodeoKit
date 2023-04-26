@@ -12,7 +12,7 @@ add_library(${PROJECT_NAME}
 	"src/input/rodeo_input.c"
 )
 
-set_property(TARGET RodeoKit PROPERTY C_STANDARD 11)
+set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)
 set_property(TARGET RodeoKit PROPERTY CXX_STANDARD 11)
 
 # pull all git submodules recursively

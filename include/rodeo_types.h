@@ -14,12 +14,14 @@ typedef irodeo_texture_internal_t *rodeo_texture_internal_p;
 typedef
 union
 {
-	struct {
+	struct
+	{
 		float red;
 		float green;
 		float blue;
 		float alpha;
-	};
+	}
+	colors;
 	float array[4];
 }
 rodeo_color_RGBAFloat_t;
@@ -33,7 +35,8 @@ union
 		uint8_t green;
 		uint8_t blue;
 		uint8_t alpha;
-	};
+	}
+	colors;
 	uint32_t rgba;
 	uint8_t array[4];
 }

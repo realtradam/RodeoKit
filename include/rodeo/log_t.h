@@ -19,10 +19,12 @@ void
 typedef 
 union
 {
-	struct {
+	struct
+	{
 		float x;
 		float y;
-	};
+	}
+	position;
 	float array[2];
 }
 rodeo_vector2_t;
@@ -30,11 +32,13 @@ rodeo_vector2_t;
 typedef 
 union
 {
-	struct {
+	struct
+	{
 		float x;
 		float y;
 		float z;
-	};
+	}
+	position;
 	float array[3];
 }
 rodeo_vector3_t;
