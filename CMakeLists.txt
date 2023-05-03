@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME}
 	"src/rodeo_math.c"
 	"src/log/rodeo_log.c"
 	"src/input/rodeo_input.c"
+	"src/audio/rodeo_audio.c"
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)
@@ -105,6 +106,7 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 
 	add_subdirectory(external/SDL)
 	add_subdirectory(external/SDL_image)
+	add_subdirectory(external/SDL_mixer)
 
 	target_compile_options(${PROJECT_NAME}
 		PRIVATE -Wall
@@ -132,6 +134,7 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 	target_include_directories(${PROJECT_NAME}
 		PRIVATE external/SDL/include
 		PRIVATE external/SDL_image/include
+		PRIVATE external/SDL_mixer/include
 		PRIVATE external/bgfx/include
 		PRIVATE external/bx/include
 		PRIVATE external/cglm/include
@@ -146,6 +149,7 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 	target_link_directories(${PROJECT_NAME}
 		PRIVATE external/SDL
 		PRIVATE external/SDL_image
+		PRIVATE external/SDL_mixer
 		PRIVATE external/bgfx
 		)
 	target_link_libraries(${PROJECT_NAME}
@@ -153,6 +157,7 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 		#PRIVATE SDL2::SDL2main
 		PRIVATE SDL2::SDL2 # dynamic lib
 		PRIVATE SDL2_image
+		PRIVATE SDL2_mixer
 		PRIVATE cglm
 		PRIVATE bgfx
 		)

@@ -5,6 +5,7 @@
 #include "rodeo/input.h"
 #include "rodeo/log.h"
 #include "rodeo/common.h"
+#include "rodeo/audio.h"
 
 // -- external --
 #include "stc/cstr.h"

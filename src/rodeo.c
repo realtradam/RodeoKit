@@ -1,3 +1,4 @@
+
 // -- internal --
 // public
 #include "rodeo.h"
@@ -13,6 +14,7 @@
 #endif
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
+#include "SDL2/SDL_mixer.h"
 #include "SDL2/SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
 /*#define CGLM_FORCE_LEFT_HANDED*/
@@ -44,7 +46,7 @@ rodeo_window_init(
 		"Initializing SDL..."
 	);
 
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) < 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -241,6 +243,8 @@ rodeo_window_init(
 		state.default_texture.width = 1;
 		state.default_texture.height = 1;
 
+		rodeo_audio_initialize();
+
 		state.active_texture_p = &state.default_texture.internal_texture->texture_bgfx;
 	}
 
@@ -260,6 +264,7 @@ rodeo_window_deinit(void)
 	bgfx_shutdown();
 
 	SDL_DestroyWindow(state.window);
+	Mix_Quit();
 	SDL_Quit();
 }
 
