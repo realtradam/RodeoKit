@@ -9,8 +9,8 @@
 #if __EMSCRIPTEN__
 	#include <emscripten/emscripten.h>
 #endif
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_syswm.h"
+#include "SDL.h"
+#include "SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
 #include "stc/crandom.h"
 

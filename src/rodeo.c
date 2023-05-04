@@ -12,10 +12,11 @@
 #if __EMSCRIPTEN__
     #include <emscripten/emscripten.h>
 #endif
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
-#include "SDL2/SDL_mixer.h"
-#include "SDL2/SDL_syswm.h"
+#include "SDL.h"
+#include "SDL_image.h"
+#include "SDL_mixer.h"
+#include "SDL_syswm.h"
+#include "SDL.h"
 #include "bgfx/c99/bgfx.h"
 /*#define CGLM_FORCE_LEFT_HANDED*/
 #define CGLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -25,6 +26,7 @@
 
 // -- system --
 #include <time.h>
+#include <inttypes.h>
 
 static irodeo_state_t state = {0};
 
@@ -46,19 +48,26 @@ rodeo_window_init(
 		"Initializing SDL..."
 	);
 
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) < 0)
 	{
+		uint32_t init_flags_sdl = 0;
+		init_flags_sdl = init_flags_sdl | SDL_INIT_VIDEO;
+		init_flags_sdl = init_flags_sdl | SDL_INIT_AUDIO;
+		init_flags_sdl = init_flags_sdl | SDL_INIT_GAMECONTROLLER;
+	
+		if(SDL_Init(init_flags_sdl) < 0)
+		{
+			rodeo_log(
+				rodeo_logLevel_error,
+				"Failed to initialize SDL. SDL_Error: %s",
+				SDL_GetError()
+			);
+			exit(EXIT_FAILURE);
+		}
 		rodeo_log(
-			rodeo_logLevel_error,
-			"Failed to initialize SDL. SDL_Error: %s",
-			SDL_GetError()
+			rodeo_logLevel_info,
+			"Success initializing SDL"
 		);
-		exit(EXIT_FAILURE);
 	}
-	rodeo_log(
-		rodeo_logLevel_info,
-		"Success initializing SDL"
-	);
 
 	rodeo_log(
 		rodeo_logLevel_info,

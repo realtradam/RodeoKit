@@ -789,7 +789,8 @@ typedef enum
     rodeo_input_binary_controllerButton_PADDLE4,  /* Xbox Elite paddle P4 (lower right, facing the back) */
     rodeo_input_binary_controllerButton_TOUCHPAD, /* PS4/PS5 touchpad button */
     rodeo_input_binary_controllerButton_MAX
-} rodeo_input_binary_controllerButton_t;
+}
+rodeo_input_binary_controllerButton_t;
 
 // - SDL code end -
 

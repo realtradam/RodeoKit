@@ -10,7 +10,7 @@
 #include <math.h>
 
 // -- external --
-#include "SDL2/SDL.h"
+#include "SDL.h"
 #include "stc/crandom.h"
 #define CGLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "cglm/cglm.h"

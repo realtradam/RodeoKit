@@ -6,7 +6,7 @@
 #include "rodeo/log.h"
 
 // -- external --
-#include "SDL2/SDL.h"
+#include "SDL.h"
 
 static irodeo_input_state_t istate = {0};
 

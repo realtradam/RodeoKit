@@ -62,22 +62,10 @@ if(DEFINED EMSCRIPTEN)
 	set_target_properties(bimg PROPERTIES IMPORTED_LOCATION "${BINARY_DIR}/.build/wasm/bin/bimgRelease.bc")
 	add_dependencies(bimg project_bgfx)
 
-	target_include_directories(${PROJECT_NAME}
-		PRIVATE external/bgfx/include
-		PRIVATE external/bx/include
-		PRIVATE external/cglm/include
-		PRIVATE src
-		PUBLIC include
-		)
-	# `SYSTEM` setting ignores warnings from this external header
-	target_include_directories(${PROJECT_NAME}
-		SYSTEM PUBLIC external/STC/include
-		)
 	target_link_directories(${PROJECT_NAME}
 		PRIVATE external/bgfx
 		)
 	target_link_options(${PROJECT_NAME}
-		PUBLIC "-lSDL"
 		PUBLIC "-sMAX_WEBGL_VERSION=2"
 		PUBLIC "-sMIN_WEBGL_VERSION=2"
 		PUBLIC "-sWASM=1"
@@ -87,7 +75,7 @@ if(DEFINED EMSCRIPTEN)
 		PUBLIC "-sALLOW_MEMORY_GROWTH=1"
 		PUBLIC "-sUSE_SDL=2"
 		PUBLIC "-sUSE_SDL_IMAGE=2"
-		PUBLIC "-sSDL2_IMAGE_FORMATS='[\"png\"]'"
+		PUBLIC "-sUSE_SDL_MIXER=2"
 		)
 	target_link_libraries(${PROJECT_NAME} PRIVATE
 		PRIVATE cglm
@@ -98,8 +86,12 @@ if(DEFINED EMSCRIPTEN)
 	target_compile_options(${PROJECT_NAME}
 		PUBLIC "-fno-exceptions"
 		PUBLIC "-fno-rtti"
+		PUBLIC "-sUSE_SDL=2"
+		PUBLIC "-sUSE_SDL_IMAGE=2"
+		PUBLIC "-sUSE_SDL_MIXER=2"
 		)
 elseif(DEFINED UNIX AND NOT DEFINED APPLE)
+	add_definitions(-DSDL_VIDEO_DRIVER_X11)
 	option(CGLM_SHARED "Shared build" OFF)
 	option(CGLM_STATIC "Static build" ON)
 	add_subdirectory(external/cglm)
@@ -133,17 +125,8 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 
 	target_include_directories(${PROJECT_NAME}
 		PRIVATE external/SDL/include
-		PRIVATE external/SDL_image/include
+		PRIVATE external/SDL_image
 		PRIVATE external/SDL_mixer/include
-		PRIVATE external/bgfx/include
-		PRIVATE external/bx/include
-		PRIVATE external/cglm/include
-		PRIVATE src
-		PUBLIC include
-		)
-	# `SYSTEM` setting ignores warnings from this external header
-	target_include_directories(${PROJECT_NAME}
-		SYSTEM PUBLIC external/STC/include
 		)
 
 	target_link_directories(${PROJECT_NAME}
@@ -162,6 +145,20 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 		PRIVATE bgfx
 		)
 endif()
+
+target_include_directories(${PROJECT_NAME}
+	PRIVATE external/bgfx/include
+	PRIVATE external/bx/include
+	PRIVATE external/cglm/include
+	PRIVATE src
+	PUBLIC include
+)
+
+
+# `SYSTEM` setting ignores warnings from this external header
+target_include_directories(${PROJECT_NAME}
+	SYSTEM PUBLIC external/STC/include
+	)
 
 add_dependencies(RodeoKit project_bgfx)
  
