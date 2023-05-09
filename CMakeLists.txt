@@ -100,13 +100,19 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 	add_subdirectory(external/SDL_image)
 	add_subdirectory(external/SDL_mixer)
 
+if(${CMAKE_BUILD_TYPE} EQUAL Debug)
 	target_compile_options(${PROJECT_NAME}
 		PRIVATE -Wall
 		PRIVATE -Wextra
 		PRIVATE -Wpedantic
 		#PRIVATE -Werror
 		PRIVATE -Wconversion
+		PUBLIC -fsanitize=address,undefined,leak
 	)
+	target_link_options(${PROJECT_NAME}
+		PUBLIC -fsanitize=address,undefined,leak
+	)
+endif()
 
 	ExternalProject_Add(project_bgfx
 		#BUILD_IN_SOURCE true # this just doesn't work

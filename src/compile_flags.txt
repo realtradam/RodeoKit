@@ -12,4 +12,6 @@
 -Wextra
 -Wpedantic
 -Wconversion
+-fsanitize=address,undefined
 -std=c99
+

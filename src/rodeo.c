@@ -252,7 +252,7 @@ rodeo_window_init(
 		state.default_texture.width = 1;
 		state.default_texture.height = 1;
 
-		rodeo_audio_initialize();
+		rodeo_audio_initialize(4, 4);
 
 		state.active_texture_p = &state.default_texture.internal_texture->texture_bgfx;
 	}
