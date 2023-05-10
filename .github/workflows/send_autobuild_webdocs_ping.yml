@@ -12,7 +12,7 @@ jobs:
         run: |
           curl -X post https://api.github.com/repos/CatgirlsRodeo/dev.catgirls.rodeo/dispatches \
           -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.access_token }} \
+          -H "Authorization: Bearer ${{ secrets.access_token }}" \
           -d '{"event_type":"on-demand-test","client_payload":{"unit":false,"integration":true}}'
 
 
