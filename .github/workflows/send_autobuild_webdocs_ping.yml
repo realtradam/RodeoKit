@@ -1,13 +1,11 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: "Send Autobuild Webdocs Ping"
 
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
@@ -25,15 +23,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
       - name: remote stuff
         run: |
-          curl -XPOST -u "realtradam:${{ secrets.ACCESS_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/CatgirlsRodeo/dev.catgirls.rodeo/dispatches --data '{"event_type": "build_application"}'
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          curl -XPOST -u "realtradam:${{ secrets.ACCESS_TOKEN }}" -H "Accept: application/vnd.github+json" -H "Content-Type: application/json" https://api.github.com/repos/CatgirlsRodeo/dev.catgirls.rodeo/dispatches --data '{"event_type": "build_application"}'
+
