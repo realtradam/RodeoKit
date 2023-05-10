@@ -1,0 +1,19 @@
+name: Remote Dispatch Action Initiator
+
+on:
+  push:
+
+jobs:
+  ping-pong:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PING - Dispatch initiating repository event
+        if: github.event.action != 'pong'
+        run: |
+          curl -X POST https://api.github.com/repos/marcnuri-demo/actions-remote-dispatch-b/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          curl -x post https://api.github.com/repos/catgirlsrodeo/dev.catgirls.rodeo/dispatches \
+          -h 'accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.access_token }} \
+          --data '{"event_type": "trigger_build", "client_payload": { "repository": "'"$github_repository"'" }}'
+
