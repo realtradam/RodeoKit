@@ -10,4 +10,9 @@ jobs:
       - name: PING - Dispatch initiating repository event
         if: github.event.action != 'pong'
         run: |
-          curl -X post https://api.github.com/repos/catgirlsrodeo/dev.catgirls.rodeo/dispatches -H 'accept: application/vnd.github.everest-preview+json' -u ${{ secrets.access_token }} --data '{"event_type": "trigger_build", "client_payload": { "repository": "'"$github_repository"'" }}'
+          curl -X post https://api.github.com/repos/CatgirlsRodeo/dev.catgirls.rodeo/dispatches \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.access_token }} \
+          -d '{"event_type":"on-demand-test","client_payload":{"unit":false,"integration":true}}'
+
+
