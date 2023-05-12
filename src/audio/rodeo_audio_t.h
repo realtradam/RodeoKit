@@ -9,3 +9,8 @@ rodeo_audio_sound_t
 	Mix_Chunk *sdl_sound;
 };
 
+struct
+rodeo_audio_music_t
+{
+	Mix_Music *sdl_music;
+};
