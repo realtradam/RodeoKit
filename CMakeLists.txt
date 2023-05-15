@@ -107,6 +107,16 @@ if(${CMAKE_BUILD_TYPE} EQUAL Debug)
 		PRIVATE -Wpedantic
 		#PRIVATE -Werror
 		PRIVATE -Wconversion
+		PRIVATE -Wconversion
+		PRIVATE -Wformat=2
+		PRIVATE -Wno-unused-parameter
+		PRIVATE -Wshadow
+		PRIVATE -Wwrite-strings
+		PRIVATE -Wstrict-prototypes
+		PRIVATE -Wold-style-definition
+		PRIVATE -Wredundant-decls
+		PRIVATE -Wnested-externs
+		PRIVATE -Wmissing-include-dirs
 		PUBLIC -fsanitize=address,undefined,leak
 	)
 	target_link_options(${PROJECT_NAME}
