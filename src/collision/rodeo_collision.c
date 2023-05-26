@@ -34,7 +34,8 @@ rodeo_collision_2d_world_item_create(
 )
 {
 	static uint32_t next_id = 0;
-	item_params.id = next_id++;
+	item_params.id.id = next_id++;
+	item_params.id.world = world;
 	cvec_collision_2d_world_item_value* new_item = cvec_collision_2d_world_item_push(world, item_params);
 	
 	return new_item;
@@ -42,24 +43,32 @@ rodeo_collision_2d_world_item_create(
 
 void
 rodeo_collision_2d_world_item_destroy(
-	rodeo_collision_2d_world_t *world,
 	cvec_collision_2d_world_item_value* cvec_value
 )
 {
-	cvec_collision_2d_world_item_value temp = *cvec_collision_2d_world_item_back(world);
-	*cvec_collision_2d_world_item_back(world) = *cvec_value;
+	
+	cvec_collision_2d_world_item_value temp = *cvec_collision_2d_world_item_back(cvec_value->id.world);
+	*cvec_collision_2d_world_item_back(cvec_value->id.world) = *cvec_value;
 	*cvec_value = temp;
-	cvec_collision_2d_world_item_pop(world);
+	cvec_collision_2d_world_item_pop(cvec_value->id.world);
+}
+
+void
+rodeo_collision_2d_world_item_destroy_by_id(
+	world_id id
+)
+{
+	rodeo_collision_2d_world_item_t* item = rodeo_collision_2d_world_item_get_by_id(id);
+	rodeo_collision_2d_world_item_destroy(item);
 }
 
 rodeo_collision_2d_world_item_t*
 rodeo_collision_2d_world_item_get_by_id(
-	rodeo_collision_2d_world_t *world,
-	uint32_t id
+	world_id id
 )
 {
-	c_foreach(i, cvec_collision_2d_world_item, *world) {
-		if (i.ref->id == id) {
+	c_foreach(i, cvec_collision_2d_world_item, *id.world) {
+		if (i.ref->id.id == id.id) {
 			return i.ref;
 		}
 	}
@@ -109,9 +118,9 @@ int rodeo_collision_2d_item_cmp(
 	const rodeo_collision_2d_world_item_t* b
 )
 {
-	if (a->id == b->id) {
+	if (a->id.id == b->id.id) {
 		return 0;
 	} else {
-		return a->id > b->id ? 1 : -1;
+		return a->id.id > b->id.id ? 1 : -1;
 	}
 }

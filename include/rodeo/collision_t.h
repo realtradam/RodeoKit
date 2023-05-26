@@ -4,10 +4,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+struct cvec_collision_2d_world_item;
+
 typedef
 struct
 {
 	uint32_t id;
+    struct cvec_collision_2d_world_item  *world;
+} world_id;
+
+typedef
+struct
+{
+    world_id id;
 	float x;
 	float y;
 	float dx;

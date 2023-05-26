@@ -19,14 +19,17 @@ rodeo_collision_2d_world_item_create(
 
 void
 rodeo_collision_2d_world_item_destroy(
-	rodeo_collision_2d_world_t *world,
 	cvec_collision_2d_world_item_value* cvec_value
+);
+
+void
+rodeo_collision_2d_world_item_destroy_by_id(
+    world_id id
 );
 
 rodeo_collision_2d_world_item_t*
 rodeo_collision_2d_world_item_get_by_id(
-	rodeo_collision_2d_world_t *world,
-    uint32_t id
+    world_id id
 );
 
 void
