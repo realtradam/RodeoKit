@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
 	"src/log/rodeo_log.c"
 	"src/input/rodeo_input.c"
 	"src/audio/rodeo_audio.c"
+    "src/collision/rodeo_collision.c"
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)
