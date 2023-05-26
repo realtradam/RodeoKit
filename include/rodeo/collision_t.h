@@ -18,6 +18,7 @@ struct
 }
 rodeo_collision_2d_world_item_t;
 
+
 int rodeo_collision_2d_item_cmp(
 	const rodeo_collision_2d_world_item_t* a,
 	const rodeo_collision_2d_world_item_t* b
@@ -27,5 +28,6 @@ int rodeo_collision_2d_item_cmp(
 #define i_cmp rodeo_collision_2d_item_cmp
 #define i_type cvec_collision_2d_world_item
 #include "stc/cvec.h"
+
 
 typedef cvec_collision_2d_world_item rodeo_collision_2d_world_t;
