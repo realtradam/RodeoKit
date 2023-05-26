@@ -7,7 +7,8 @@ bool detect_collision(
 	const rodeo_collision_2d_world_item_t *b
 )
 {
-	return !(a->x+a->dx > b->x+b->dx + b->width ||
+	return !(a->id.id == b->id.id ||
+			a->x+a->dx > b->x+b->dx + b->width ||
 			b->x+b->dx > a->x+a->dx + a->width ||
 			a->y+a->dy > b->y+b->dy + b->height ||
 			b->y+b->dy > a->y+a->dy + a->height);
