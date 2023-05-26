@@ -46,11 +46,8 @@ rodeo_collision_2d_world_item_destroy(
 	cvec_collision_2d_world_item_value* cvec_value
 )
 {
-	
-	cvec_collision_2d_world_item_value temp = *cvec_collision_2d_world_item_back(cvec_value->id.world);
-	*cvec_collision_2d_world_item_back(cvec_value->id.world) = *cvec_value;
-	*cvec_value = temp;
-	cvec_collision_2d_world_item_pop(cvec_value->id.world);
+	*cvec_value = *cvec_collision_2d_world_item_back(cvec_value->id.world);
+    cvec_collision_2d_world_item_pop(cvec_value->id.world);
 }
 
 void
