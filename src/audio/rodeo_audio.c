@@ -125,7 +125,7 @@ rodeo_audio_master_volume_get(void)
 #ifndef __EMSCRIPTEN__
 	return ((float)Mix_MasterVolume(-1)) / (float)MIX_MAX_VOLUME;
 #else
-	return 0.0f
+	return 0.0f;
 #endif
 }
 
