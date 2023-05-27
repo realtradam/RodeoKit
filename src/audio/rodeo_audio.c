@@ -113,14 +113,20 @@ irodeo_audio_channelPool_size_get(void)
 void
 rodeo_audio_master_volume_set(float volume_level)
 {
+#ifndef __EMSCRIPTEN__
 	Mix_MasterVolume((int32_t)(volume_level * (float)MIX_MAX_VOLUME));
 	Mix_VolumeMusic((int32_t)(volume_level * (float)MIX_MAX_VOLUME));
+#endif
 }
 
 float
 rodeo_audio_master_volume_get(void)
 {
+#ifndef __EMSCRIPTEN__
 	return ((float)Mix_MasterVolume(-1)) / (float)MIX_MAX_VOLUME;
+#elif
+	return 0.0f
+#endif
 }
 
 /*
