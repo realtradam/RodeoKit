@@ -2,6 +2,7 @@
 // -- internal --
 // public
 #include "rodeo/collision_t.h"
+#include "rodeo_types.h"
 
 rodeo_collision_2d_world_t
 rodeo_collision_2d_world_create(void);
@@ -49,4 +50,11 @@ rodeo_collision_2d_world_compare_other(
 		rodeo_collision_2d_world_item_t *a,
 		rodeo_collision_2d_world_item_t *b
 	)
+);
+
+// from raylib GetCollisionRect
+rodeo_rectangle_t
+rodeo_collision_2d_get_collision_rect(
+    rodeo_collision_2d_world_item_t *a,
+    rodeo_collision_2d_world_item_t *b
 );

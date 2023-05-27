@@ -122,3 +122,32 @@ int rodeo_collision_2d_item_cmp(
 		return a->id.id > b->id.id ? 1 : -1;
 	}
 }
+
+// from raylib GetCollisionRect
+rodeo_rectangle_t
+rodeo_collision_2d_get_collision_rect(
+    rodeo_collision_2d_world_item_t *a,
+    rodeo_collision_2d_world_item_t *b
+)
+{
+	rodeo_rectangle_t overlap = { 0 };
+
+    float left = (a->x > b->x)? a->x : b->x;
+    float right1 = a->x + a->width;
+    float right2 = b->x + b->width;
+    float right = (right1 < right2)? right1 : right2;
+    float top = (a->y > b->y)? a->y : b->y;
+    float bottom1 = a->y + a->height;
+    float bottom2 = b->y + b->height;
+    float bottom = (bottom1 < bottom2)? bottom1 : bottom2;
+
+    if ((left < right) && (top < bottom))
+    {
+        overlap.x = left;
+        overlap.y = top;
+        overlap.width = right - left;
+        overlap.height = bottom - top;
+    }
+
+    return overlap;
+}

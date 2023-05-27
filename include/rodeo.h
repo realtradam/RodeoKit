@@ -6,6 +6,7 @@
 #include "rodeo/log.h"
 #include "rodeo/common.h"
 #include "rodeo/audio.h"
+#include "rodeo/collision.h"
 
 // -- external --
 #include "stc/cstr.h"
