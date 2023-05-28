@@ -1,6 +1,6 @@
 
 #ifndef mrodeo_vertex_size_max
-    #define mrodeo_vertex_size_max 8192
+    #define mrodeo_vertex_size_max 1024
 #endif
 
 #ifndef mrodeo_index_size_max
