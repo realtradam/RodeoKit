@@ -338,7 +338,19 @@ rodeo_frame_end(void)
 	#endif
 	state.frame_count += 1;
 	state.end_frame = SDL_GetPerformanceCounter();
+
+#ifndef __EMSCRIPTEN__
 	state.frame_time = ((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
+#else
+	state.frame_time = (1.0f/60.f) * 1000; //((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
+#endif
+
+
+	/*
+	float minimum_fps = 20.0f;
+	float temp_frame_time = ((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
+	state.frame_time = (temp_frame_time < ((1.0f/minimum_fps) * 1000)) ? temp_frame_time : ((1.0f / minimum_fps) * 1000);
+	*/
 }
 
 void

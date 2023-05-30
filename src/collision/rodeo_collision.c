@@ -57,15 +57,20 @@ rodeo_collision_2d_world_item_destroy_by_id(
 	world_id id
 )
 {
-	rodeo_collision_2d_world_item_t* item = rodeo_collision_2d_world_item_get_by_id(id);
+	rodeo_collision_2d_world_item_t* item = rodeo_collision_2d_world_item_get_by_id
+	(id);
 	rodeo_collision_2d_world_item_destroy(item);
-}
+} 
 
 rodeo_collision_2d_world_item_t*
-rodeo_collision_2d_world_item_get_by_id(
-	world_id id
-)
+rodeo_collision_2d_world_item_get_by_id( 
+	world_id id 
+) 
 {
+	if(id.world == NULL)
+	{
+		return NULL;
+	}
 	c_foreach(i, cvec_collision_2d_world_item, *id.world) {
 		if (i.ref->id.id == id.id) {
 			return i.ref;
