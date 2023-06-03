@@ -4,9 +4,15 @@
 #include "rodeo/input.h"
 #include "irodeo_input_t.h"
 #include "rodeo/log.h"
+// pirvate
+#include "rodeo_internal.h"
 
 // -- external --
 #include "SDL.h"
+#include "bgfx/c99/bgfx.h"
+
+// -- system --
+#include <inttypes.h>
 
 static irodeo_input_state_t istate = {0};
 
@@ -22,7 +28,34 @@ rodeo_input_events_poll(void)
 				{
 					return true;
 				}
-				break;
+				//break;
+			case SDL_WINDOWEVENT:
+				{
+					if(SDL_WINDOWEVENT_SIZE_CHANGED == event.window.event)
+					{
+					int32_t width = event.window.data1;
+					int32_t height = event.window.data2;
+					//SDL_GetWindowSize(irodeo_window_get(), &width, &height);
+					bgfx_reset((uint32_t)width, (uint32_t)height,
+						//BGFX_RESET_MSAA_X16 | BGFX_RESET_MAXANISOTROPY,
+						BGFX_RESET_VSYNC,
+						BGFX_TEXTURE_FORMAT_COUNT
+					);
+					irodeo_screen_width_set((uint16_t)width);
+					irodeo_screen_height_set((uint16_t)height);
+					rodeo_log(
+						rodeo_logLevel_warning,
+						"%"PRIu16"x",
+						rodeo_screen_width_get()
+					);
+					rodeo_log(
+						rodeo_logLevel_warning,
+						"%"PRIu16"\n",
+						rodeo_screen_height_get()
+					);
+					}
+				}
+				// keep going, to check for inputs
 			// - Binary -
 			case SDL_KEYUP:
 			case SDL_KEYDOWN:

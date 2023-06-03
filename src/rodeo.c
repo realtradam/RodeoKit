@@ -79,7 +79,7 @@ rodeo_window_init(
 			SDL_WINDOWPOS_UNDEFINED,
 			screen_width,
 			screen_height,
-			SDL_WINDOW_SHOWN
+			SDL_WINDOW_SHOWN //| SDL_WINDOW_RESIZABLE
 			);
 	if(state.window == NULL)
 	{
@@ -136,8 +136,9 @@ rodeo_window_init(
 
 	bgfx_init_t init = {0};
 	bgfx_init_ctor(&init);
-	init.type = BGFX_RENDERER_TYPE_COUNT; // auto determine renderer
-	//init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
+	//init.type = BGFX_RENDERER_TYPE_COUNT; // auto determine renderer
+	init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
+	//SDL_GetWindowSize(state.window, &state.screen_width, &state.screen_height);
 	init.resolution.width = state.screen_width;
 	init.resolution.height = state.screen_height;
 	init.resolution.reset = BGFX_RESET_VSYNC;
@@ -147,6 +148,8 @@ rodeo_window_init(
 	bgfx_set_debug(BGFX_DEBUG_TEXT);
 
 	//bgfx_set_state(BGFX_STATE_CULL_CCW, 0);
+	
+	//bgfx_dbg_text_clear(0x65, false);
 
 	bgfx_set_view_clear(
 		0,
@@ -186,6 +189,12 @@ rodeo_window_init(
 			cstr_assign(
 				&shader_path,
 				"shaders/spirv/"
+			);
+			break;
+        case BGFX_RENDERER_TYPE_OPENGL:
+			cstr_assign(
+				&shader_path,
+				"shaders/opengl/"
 			);
 			break;
 		default:
@@ -257,6 +266,40 @@ rodeo_window_init(
 		state.active_texture_p = &state.default_texture.internal_texture->texture_bgfx;
 	}
 
+	SDL_SetWindowResizable(state.window, true);
+
+	/*
+	rodeo_log(
+		rodeo_logLevel_info,
+		"%"PRIu32", %b\n",
+		bgfx_get_caps()->limits.transientVbSize,
+		bgfx_get_caps()->homogeneousDepth
+	);*/
+
+	//vec3 eye = {0.0f, 0.0f, -35.0f};
+	//vec3 center = {0.0f, 0.0f, 0.0f};
+	//vec3 up = {0, 1, 0};
+	
+	//glm_lookat(eye, center, up, view);
+	
+	glm_mat4_identity(state.view_matrix);
+
+	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
+
+	// TODO: figure out if why 'zo' is correct
+	// but 'no' is incorrect
+	glm_ortho_rh_zo( 
+		0,
+		(float)state.screen_width,
+		(float)state.screen_height,
+		0,
+		// near
+		-0.1f,
+		// far
+		100.0f,
+		state.proj_matrix
+	);
+
 	rodeo_random_seed_set(SDL_GetTicks64());
 
 	state.end_frame = SDL_GetPerformanceCounter();
@@ -277,6 +320,12 @@ rodeo_window_deinit(void)
 	SDL_Quit();
 }
 
+SDL_Window *
+irodeo_window_get(void)
+{
+	return state.window;
+}
+
 uint16_t
 rodeo_screen_width_get(void)
 {
@@ -290,38 +339,27 @@ rodeo_screen_height_get(void)
 }
 
 void
+irodeo_screen_width_set(uint16_t width)
+{
+	state.screen_width = width;
+}
+
+void
+irodeo_screen_height_set(uint16_t height)
+{
+	state.screen_height = height;
+}
+
+void
 rodeo_frame_begin(void)
 {
-	//vec3 eye = {0.0f, 0.0f, -35.0f};
-	//vec3 center = {0.0f, 0.0f, 0.0f};
-	//vec3 up = {0, 1, 0};
-	mat4 view;
-	//glm_lookat(eye, center, up, view);
-	glm_mat4_identity(view);
+	state.quit = rodeo_input_events_poll();
 
-	mat4 proj;
-	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
-
-	// TODO: figure out if why 'zo' is correct
-	// but 'no' is incorrect
-	glm_ortho_rh_zo( 
-		0,
-		(float)state.screen_width,
-		(float)state.screen_height,
-		0,
-		// near
-		-0.1f,
-		// far
-		100.0f,
-		proj
-	);
-	bgfx_set_view_transform(0, view, proj);
+	bgfx_set_view_transform(0, state.view_matrix, state.proj_matrix);
 	bgfx_set_view_rect(0, 0, 0, state.screen_width, state.screen_height);
 	bgfx_touch(0);
 
 	irodeo_render_buffer_transient_alloc();
-
-	state.quit = rodeo_input_events_poll();
 
 	state.start_frame = state.end_frame;
 }
@@ -350,6 +388,13 @@ rodeo_frame_end(void)
 	float minimum_fps = 20.0f;
 	float temp_frame_time = ((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
 	state.frame_time = (temp_frame_time < ((1.0f/minimum_fps) * 1000)) ? temp_frame_time : ((1.0f / minimum_fps) * 1000);
+	*/
+	/*
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Vertex Buffer Used: %f",
+		(float)bgfx_get_stats()->transientVbUsed / (float)bgfx_get_caps()->limits.transientVbSize
+	);
 	*/
 }
 

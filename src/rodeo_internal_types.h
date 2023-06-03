@@ -13,6 +13,10 @@
 #include "SDL_syswm.h"
 #include "bgfx/c99/bgfx.h"
 #include "stc/crandom.h"
+/*#define CGLM_FORCE_LEFT_HANDED*/
+#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
+/*#define CGLM_CLIPSPACE_INCLUDE_ALL*/
+#include "cglm/cglm.h"
 
 typedef uint16_t irodeo_index_type_t;
 
@@ -43,6 +47,8 @@ typedef struct
 	bgfx_shader_handle_t fragment_shader;
 	bgfx_program_handle_t program_shader;
 	bgfx_uniform_handle_t texture_uniforms[2];
+	mat4 view_matrix;
+	mat4 proj_matrix;
 
 	stc64_t random_seed;
 

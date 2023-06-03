@@ -5,6 +5,9 @@
 // private
 #include "rodeo_internal_types.h"
 
+// -- external --
+#include "SDL.h"
+
 #define											\
 mrodeo_bgfx_vertex_layout_do(vertex_layout)		\
 	mrodeo_defer_do(							\
@@ -14,6 +17,15 @@ mrodeo_bgfx_vertex_layout_do(vertex_layout)		\
 		),										\
 		bgfx_vertex_layout_end(vertex_layout)	\
 	)
+
+SDL_Window *
+irodeo_window_get(void);
+
+void
+irodeo_screen_width_set(uint16_t width);
+
+void
+irodeo_screen_height_set(uint16_t height);
 
 void
 irodeo_render_buffer_transient_alloc(void);
