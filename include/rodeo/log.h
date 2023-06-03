@@ -9,3 +9,11 @@ rodeo_log(
 	const char *format,
 	...
 );
+
+void
+rodeo_log_function_set(
+	rodeo_log_function rodeo_log_func
+);
+
+rodeo_log_function
+rodeo_log_function_get(void);
