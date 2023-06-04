@@ -45,16 +45,6 @@ rodeo_input_poll(void)
 					);
 					irodeo_window_screen_width_setVar((uint16_t)width);
 					irodeo_window_screen_height_setVar((uint16_t)height);
-					rodeo_log(
-						rodeo_logLevel_warning,
-						"%"PRIu16"x",
-						rodeo_window_screen_width_get()
-					);
-					rodeo_log(
-						rodeo_logLevel_warning,
-						"%"PRIu16"\n",
-						rodeo_window_screen_height_get()
-					);
 					}
 				}
 				// keep going, to check for inputs

@@ -107,7 +107,6 @@ void
 rodeo_window_deinit(void)
 {
 	SDL_DestroyWindow(irodeo_window_state.window);
-	//Mix_Quit();
 	SDL_Quit();
 }
 

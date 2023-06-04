@@ -54,7 +54,7 @@ rodeo_gfx_init(void)
 
 	//bgfx_set_state(BGFX_STATE_CULL_CCW, 0);
 	
-	//bgfx_dbg_text_clear(0x65, false);
+	bgfx_dbg_text_clear(0x0, false);
 
 	bgfx_set_view_clear(
 		0,
@@ -63,7 +63,6 @@ rodeo_gfx_init(void)
 		1.0f,
 		0
 	);
-	bgfx_set_view_rect(0, 0, 0, rodeo_window_screen_width_get(), rodeo_window_screen_height_get());
 
 	rodeo_log(rodeo_logLevel_info, "Setting up default render pipeline...");
 	// set up vertex layout
@@ -223,9 +222,9 @@ rodeo_gfx_frame_begin(void)
 
 	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix, irodeo_gfx_state.proj_matrix);
 	bgfx_set_view_rect(0, 0, 0, rodeo_window_screen_width_get(), rodeo_window_screen_height_get());
-	bgfx_touch(0);
 
 	irodeo_gfx_render_buffer_transient_alloc();
+	bgfx_touch(0);
 
 	irodeo_gfx_state.frame_start = irodeo_gfx_state.frame_end;
 }
