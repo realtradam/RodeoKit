@@ -4,7 +4,7 @@
 #include "rodeo/input_t.h"
 
 bool
-rodeo_input_events_poll(void);
+rodeo_input_poll(void);
 
 void
 rodeo_input_command_register_callback(

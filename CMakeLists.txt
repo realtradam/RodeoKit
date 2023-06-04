@@ -12,6 +12,8 @@ add_library(${PROJECT_NAME}
 	"src/input/rodeo_input.c"
 	"src/audio/rodeo_audio.c"
     "src/collision/rodeo_collision.c"
+	"src/gfx/rodeo_gfx.c"
+	"src/window/rodeo_window.c"
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)

@@ -4,8 +4,10 @@
 #include "rodeo/input.h"
 #include "irodeo_input_t.h"
 #include "rodeo/log.h"
-// pirvate
+#include "rodeo/window.h"
+// private
 #include "rodeo_internal.h"
+#include "window/irodeo_window.h"
 
 // -- external --
 #include "SDL.h"
@@ -17,7 +19,7 @@
 static irodeo_input_state_t istate = {0};
 
 bool
-rodeo_input_events_poll(void)
+rodeo_input_poll(void)
 {
 	SDL_Event event = {0};
 	while(SDL_PollEvent(&event))
@@ -26,7 +28,7 @@ rodeo_input_events_poll(void)
 		{
 			case SDL_QUIT:
 				{
-					return true;
+					rodeo_window_quit();
 				}
 				//break;
 			case SDL_WINDOWEVENT:
@@ -41,17 +43,17 @@ rodeo_input_events_poll(void)
 						BGFX_RESET_VSYNC,
 						BGFX_TEXTURE_FORMAT_COUNT
 					);
-					irodeo_screen_width_set((uint16_t)width);
-					irodeo_screen_height_set((uint16_t)height);
+					irodeo_window_screen_width_setVar((uint16_t)width);
+					irodeo_window_screen_height_setVar((uint16_t)height);
 					rodeo_log(
 						rodeo_logLevel_warning,
 						"%"PRIu16"x",
-						rodeo_screen_width_get()
+						rodeo_window_screen_width_get()
 					);
 					rodeo_log(
 						rodeo_logLevel_warning,
 						"%"PRIu16"\n",
-						rodeo_screen_height_get()
+						rodeo_window_screen_height_get()
 					);
 					}
 				}

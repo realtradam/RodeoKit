@@ -17,7 +17,7 @@ static uint32_t **irodeo_audio_channelPool;
 //void
 //rodeo_audio_initialize(uint32_t num_sound_pools, uint32_t size_sound_pools)
 void
-rodeo_audio_initialize(uint32_t channels)
+rodeo_audio_init(uint32_t channels)
 {
 	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
 	{
@@ -90,7 +90,7 @@ rodeo_audio_initialize(uint32_t channels)
 }
 
 void
-rodeo_audio_deinitialize(void)
+rodeo_audio_deinit(void)
 {
 	free(irodeo_audio_channelPool);
 	Mix_Quit();

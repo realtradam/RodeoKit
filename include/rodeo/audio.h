@@ -10,14 +10,25 @@ typedef struct rodeo_audio_sound_t rodeo_audio_sound_t;
 typedef struct rodeo_audio_music_t rodeo_audio_music_t;
 
 void
-rodeo_audio_initialize(
+rodeo_audio_init(
 	uint32_t channels
 	//uint32_t num_sound_pools,
 	//uint32_t size_sound_pools
 );
 
 void
-rodeo_audio_deinitialize(void);
+rodeo_audio_deinit(void);
+
+#define								\
+mrodeo_audio_do(					\
+	channels						\
+)									\
+	mrodeo_defer_do(				\
+		rodeo_audio_init(			\
+			channels				\
+		),							\
+		rodeo_audio_deinit()		\
+	)
 
 /*
 uint32_t
