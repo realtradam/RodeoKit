@@ -55,6 +55,6 @@ rodeo_collision_2d_world_compare_other(
 // from raylib GetCollisionRect
 rodeo_rectangle_t
 rodeo_collision_2d_get_collision_rect(
-    rodeo_collision_2d_world_item_t *a,
-    rodeo_collision_2d_world_item_t *b
+    rodeo_rectangle_t a,
+    rodeo_rectangle_t b
 );

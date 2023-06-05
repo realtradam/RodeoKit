@@ -54,10 +54,10 @@ rodeo_input_poll(void)
 				{
 					c_foreach(i, cset_input_scene, istate.active_scenes)
 					{
-						rodeo_input_scene_t *scene = *i.ref;
-						c_foreach(j, cset_input_commands, scene->commands)
+						rodeo_input_scene_data_t *scene_data = *i.ref;
+						c_foreach(j, cset_input_commands, scene_data->commands)
 						{
-							rodeo_input_command_t *command = *j.ref;
+							rodeo_input_command_data_t *command = *j.ref;
 							const cset_input_binary_scancodes_value *value = cset_input_binary_scancodes_get(
 									&command->binary.scancodes,
 									(rodeo_input_binary_scancode_t)event.key.keysym.scancode
@@ -91,10 +91,10 @@ rodeo_input_poll(void)
 				{
 					c_foreach(i, cset_input_scene, istate.active_scenes)
 					{
-						rodeo_input_scene_t *scene = *i.ref;
-						c_foreach(j, cset_input_commands, scene->commands)
+						rodeo_input_scene_data_t *scene_data = *i.ref;
+						c_foreach(j, cset_input_commands, scene_data->commands)
 						{
-							rodeo_input_command_t *command = *j.ref;
+							rodeo_input_command_data_t *command = *j.ref;
 							const cset_input_binary_mouseButtons_value *value = cset_input_binary_mouseButtons_get(
 									&command->binary.mouse_buttons,
 									(rodeo_input_binary_mouseButton_t)event.button.button
@@ -128,10 +128,10 @@ rodeo_input_poll(void)
 				{
 					c_foreach(i, cset_input_scene, istate.active_scenes)
 					{
-						rodeo_input_scene_t *scene = *i.ref;
-						c_foreach(j, cset_input_commands, scene->commands)
+						rodeo_input_scene_data_t *scene_data = *i.ref;
+						c_foreach(j, cset_input_commands, scene_data->commands)
 						{
-							rodeo_input_command_t *command = *j.ref;
+							rodeo_input_command_data_t *command = *j.ref;
 							const cset_input_positional_mouse_value *x_value = cset_input_positional_mouse_get(
 									&command->positional.mouse_axes,
 									rodeo_input_positional_mouse_X
@@ -222,11 +222,11 @@ rodeo_input_poll(void)
 				{
 					c_foreach(i, cset_input_scene, istate.active_scenes)
 					{
-						rodeo_input_scene_t *scene = *i.ref;
-						c_foreach(j, cset_input_commands, scene->commands)
+						rodeo_input_scene_data_t *scene_data = *i.ref;
+						c_foreach(j, cset_input_commands, scene_data->commands)
 						{
-							rodeo_input_command_t *command = *j.ref;
-							const cset_input_binary_controllerButton_value *value = cset_input_binary_controllerButton_get(
+							rodeo_input_command_data_t *command = *j.ref;
+							const cset_input_binary_controllerButtons_value *value = cset_input_binary_controllerButtons_get(
 									&command->binary.controller_buttons,
 									(rodeo_input_binary_controllerButton_t)event.cbutton.button
 							);
@@ -258,11 +258,11 @@ rodeo_input_poll(void)
 				{
 					c_foreach(i, cset_input_scene, istate.active_scenes)
 					{
-						rodeo_input_scene_t *scene = *i.ref;
-						c_foreach(j, cset_input_commands, scene->commands)
+						rodeo_input_scene_data_t *scene_data = *i.ref;
+						c_foreach(j, cset_input_commands, scene_data->commands)
 						{
-							rodeo_input_command_t *command = *j.ref;
-							if(cset_input_boundedRange_controllerAxis_contains(&command->bounded_range.controller_axes, event.caxis.axis))
+							rodeo_input_command_data_t *command = *j.ref;
+							if(cset_input_boundedRange_controllerAxes_contains(&command->bounded_range.controller_axes, event.caxis.axis))
 							{
 									rodeo_input_any_state_t input_state = {
 										.data.bounded_range_state =
@@ -308,14 +308,14 @@ rodeo_input_poll(void)
 
 void
 rodeo_input_command_register_callback(
-	rodeo_input_command_t *command,
+	rodeo_input_command_t command,
 	rodeo_input_callback_function func
 )
 {
-	const cset_input_callback_functions_value *callback = cset_input_callback_functions_get(&(command->callbacks), func);
+	const cset_input_callback_functions_value *callback = cset_input_callback_functions_get(&(command.data->callbacks), func);
 	if(callback == NULL)
 	{
-		cset_input_callback_functions_insert(&(command->callbacks), func);
+		cset_input_callback_functions_insert(&(command.data->callbacks), func);
 		return;
 	}
 	else
@@ -330,15 +330,15 @@ rodeo_input_command_register_callback(
 
 void
 rodeo_input_command_unregister_callback(
-	rodeo_input_command_t *command,
+	rodeo_input_command_t command,
 	rodeo_input_callback_function func
 )
 {
 	cset_input_callback_functions_value *callback = 
-		cset_input_callback_functions_get_mut(&(command->callbacks), func);
+		cset_input_callback_functions_get_mut(&(command.data->callbacks), func);
 	if(callback != NULL)
 	{
-		cset_input_callback_functions_erase_entry(&(command->callbacks), callback);
+		cset_input_callback_functions_erase_entry(&(command.data->callbacks), callback);
 		return;
 	}
 	else
@@ -351,49 +351,54 @@ rodeo_input_command_unregister_callback(
 	}
 }
 
-rodeo_input_scene_t*
+rodeo_input_scene_t
 rodeo_input_scene_create(void)
 {
-	rodeo_input_scene_t *result = malloc(sizeof(rodeo_input_scene_t));
-	*result = (rodeo_input_scene_t){0};
+	rodeo_input_scene_t result = {0};
+	result.data = calloc(1, sizeof(cset_input_commands));
+	if(result.data == NULL)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Failed to allocate a scene"
+		);
+	}
 	return result;
 }
 
 void
-rodeo_input_scene_destroy(rodeo_input_scene_t *scene)
+rodeo_input_scene_destroy(rodeo_input_scene_t scene)
 {
 	rodeo_input_scene_deactivate(scene);
-	cset_input_commands_drop(&scene->commands);
-	free(scene);
+	cset_input_commands_drop(&scene.data->commands);
+	free(scene.data);
 }
 
-rodeo_input_command_t*
+rodeo_input_command_t
 rodeo_input_command_create(uint32_t input_types)
 {
-	rodeo_input_command_t *result = malloc(sizeof(rodeo_input_command_t));
-	*result = (rodeo_input_command_t)
-	{
-		.valid_types = input_types
-	};
+	rodeo_input_command_t result = {0};
+	result.data = calloc(1, sizeof(rodeo_input_command_data_t));
+	result.data->valid_types = input_types;
 	return result;
 }
 
 void
-rodeo_input_command_destroy(rodeo_input_command_t *command)
+rodeo_input_command_destroy(rodeo_input_command_t command)
 {
-	cset_input_binary_scancodes_drop(&command->binary.scancodes);
-	cset_input_binary_mouseButtons_drop(&command->binary.mouse_buttons);
-	cset_input_callback_functions_drop(&command->callbacks);
-	free(command);
+	cset_input_binary_scancodes_drop(&command.data->binary.scancodes);
+	cset_input_binary_mouseButtons_drop(&command.data->binary.mouse_buttons);
+	cset_input_callback_functions_drop(&command.data->callbacks);
+	free(command.data);
 }
 
 bool
 rodeo_input_command_register_binary_scancode(
-	rodeo_input_command_t *input_command,
+	rodeo_input_command_t input_command,
 	rodeo_input_binary_scancode_t scancode
 )
 {
-	if((rodeo_input_type_Binary & input_command->valid_types) == 0)
+	if((rodeo_input_type_Binary & input_command.data->valid_types) == 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -404,7 +409,7 @@ rodeo_input_command_register_binary_scancode(
 	else
 	{
 		cset_input_binary_scancodes_insert(
-			&input_command->binary.scancodes,
+			&input_command.data->binary.scancodes,
 			scancode
 		);
 		return true;
@@ -413,11 +418,11 @@ rodeo_input_command_register_binary_scancode(
 
 bool
 rodeo_input_command_register_binary_controllerButton(
-	rodeo_input_command_t *input_command,
+	rodeo_input_command_t input_command,
 	rodeo_input_binary_controllerButton_t button
 )
 {
-	if((rodeo_input_type_Binary & input_command->valid_types) == 0)
+	if((rodeo_input_type_Binary & input_command.data->valid_types) == 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -427,8 +432,8 @@ rodeo_input_command_register_binary_controllerButton(
 	}
 	else
 	{
-		cset_input_binary_controllerButton_insert(
-			&input_command->binary.controller_buttons,
+		cset_input_binary_controllerButtons_insert(
+			&input_command.data->binary.controller_buttons,
 			button
 		);
 		return true;
@@ -437,11 +442,11 @@ rodeo_input_command_register_binary_controllerButton(
 
 bool
 rodeo_input_command_register_binary_mouseButton(
-	rodeo_input_command_t *input_command,
+	rodeo_input_command_t input_command,
 	rodeo_input_binary_mouseButton_t mouse_button
 )
 {
-	if((rodeo_input_type_Binary & input_command->valid_types) == 0)
+	if((rodeo_input_type_Binary & input_command.data->valid_types) == 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -452,7 +457,7 @@ rodeo_input_command_register_binary_mouseButton(
 	else
 	{
 		cset_input_binary_mouseButtons_insert(
-			&input_command->binary.mouse_buttons,
+			&input_command.data->binary.mouse_buttons,
 			mouse_button
 		);
 		return true;
@@ -461,11 +466,11 @@ rodeo_input_command_register_binary_mouseButton(
 
 bool
 rodeo_input_command_register_positional_mouse(
-	rodeo_input_command_t *input_command,
+	rodeo_input_command_t input_command,
 	rodeo_input_positional_mouse_t mouse_axis
 )
 {
-	if((rodeo_input_type_Positional & input_command->valid_types) == 0)
+	if((rodeo_input_type_Positional & input_command.data->valid_types) == 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -476,7 +481,7 @@ rodeo_input_command_register_positional_mouse(
 	else
 	{
 		cset_input_positional_mouse_insert(
-			&input_command->positional.mouse_axes,
+			&input_command.data->positional.mouse_axes,
 			mouse_axis
 		);
 		return true;
@@ -485,11 +490,11 @@ rodeo_input_command_register_positional_mouse(
 
 bool
 rodeo_input_command_register_boundedRange_controllerAxis(
-	rodeo_input_command_t *input_command,
+	rodeo_input_command_t input_command,
 	rodeo_input_boundedRange_controllerAxis_t controller_axis
 )
 {
-	if((rodeo_input_type_BoundedRange & input_command->valid_types) == 0)
+	if((rodeo_input_type_BoundedRange & input_command.data->valid_types) == 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -499,8 +504,8 @@ rodeo_input_command_register_boundedRange_controllerAxis(
 	}
 	else
 	{
-		cset_input_boundedRange_controllerAxis_insert(
-			&input_command->bounded_range.controller_axes,
+		cset_input_boundedRange_controllerAxes_insert(
+			&input_command.data->bounded_range.controller_axes,
 			controller_axis
 		);
 		return true;
@@ -509,11 +514,11 @@ rodeo_input_command_register_boundedRange_controllerAxis(
 
 bool
 rodeo_input_command_register_unboundedRange_mouse(
-	rodeo_input_command_t *input_command,
+	rodeo_input_command_t input_command,
 	rodeo_input_unboundedRange_mouse_t mouse_axis
 )
 {
-	if((rodeo_input_type_UnboundedRange & input_command->valid_types) == 0)
+	if((rodeo_input_type_UnboundedRange & input_command.data->valid_types) == 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -524,7 +529,7 @@ rodeo_input_command_register_unboundedRange_mouse(
 	else
 	{
 		cset_input_unboundedRange_mouse_insert(
-			&input_command->unbounded_range.mouse_axes,
+			&input_command.data->unbounded_range.mouse_axes,
 			mouse_axis
 		);
 		return true;
@@ -533,38 +538,38 @@ rodeo_input_command_register_unboundedRange_mouse(
 
 void
 rodeo_input_scene_register_command(
-	rodeo_input_scene_t *scene,
-	rodeo_input_command_t *command
+	rodeo_input_scene_t scene,
+	rodeo_input_command_t command
 )
 {
 	cset_input_commands_insert(
-			&scene->commands,
-			command
+			&scene.data->commands,
+			command.data
 	);
 }
 
 void
 rodeo_input_scene_unregister_command(
-	rodeo_input_scene_t *scene,
-	rodeo_input_command_t *command
+	rodeo_input_scene_t scene,
+	rodeo_input_command_t command
 )
 {
 	cset_input_commands_erase(
-			&scene->commands,
-			command
+			&scene.data->commands,
+			command.data
 	);
 }
 
 void
-rodeo_input_scene_activate(rodeo_input_scene_t *scene)
+rodeo_input_scene_activate(rodeo_input_scene_t scene)
 {
-	cset_input_scene_insert(&istate.active_scenes, scene);
+	cset_input_scene_insert(&istate.active_scenes, scene.data);
 }
 
 void
-rodeo_input_scene_deactivate(rodeo_input_scene_t *scene)
+rodeo_input_scene_deactivate(rodeo_input_scene_t scene)
 {
-	cset_input_scene_erase(&istate.active_scenes, scene);
+	cset_input_scene_erase(&istate.active_scenes, scene.data);
 }
 
 #define i_key int32_t

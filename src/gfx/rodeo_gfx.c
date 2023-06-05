@@ -313,7 +313,7 @@ rodeo_gfx_renderer_flush(void)
 	bgfx_set_texture(
 		0,
 		irodeo_gfx_state.texture_uniforms[0],
-		rodeo_gfx_texture_2d_default_get()->internal_texture->texture_bgfx,
+		rodeo_gfx_texture_2d_default_get().internal_texture->texture_bgfx,
 		UINT32_MAX
 	);
 	if(irodeo_gfx_state.active_texture_p != NULL)
@@ -332,7 +332,7 @@ rodeo_gfx_renderer_flush(void)
 		bgfx_set_texture(
 			1,
 			irodeo_gfx_state.texture_uniforms[1],
-			rodeo_gfx_texture_2d_default_get()->internal_texture->texture_bgfx,
+			rodeo_gfx_texture_2d_default_get().internal_texture->texture_bgfx,
 			UINT32_MAX
 		);
 	}
@@ -375,10 +375,10 @@ rodeo_gfx_renderer_flush(void)
 	irodeo_gfx_state.active_texture_p = NULL;
 }
 
-const rodeo_gfx_texture_2d_t*
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_default_get(void)
 {
-	return &irodeo_gfx_state.default_texture;
+	return irodeo_gfx_state.default_texture;
 }
 
 rodeo_gfx_texture_2d_t
@@ -409,49 +409,49 @@ rodeo_gfx_texture_2d_create_from_RGBA8(
 }
 
 void
-rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t *texture)
+rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t texture)
 {
-	bgfx_destroy_texture(texture->internal_texture->texture_bgfx);
-	free(texture->internal_texture);
+	bgfx_destroy_texture(texture.internal_texture->texture_bgfx);
+	free(texture.internal_texture);
 }
 
 void
 rodeo_gfx_rectangle_draw(
-	const rodeo_rectangle_t *rectangle,
-	const rodeo_color_RGBAFloat_t *color
+	const rodeo_rectangle_t rectangle,
+	const rodeo_color_RGBAFloat_t color
 )
 {
 	rodeo_gfx_texture_2d_draw(
 		rectangle,
-		NULL,
+		(rodeo_rectangle_t){ 0, 0, (float)rodeo_gfx_texture_2d_default_get().width, (float)rodeo_gfx_texture_2d_default_get().height },
 		color,
-		NULL
+		rodeo_gfx_texture_2d_default_get()
 	);
 }
 
 void
 rodeo_gfx_texture_2d_draw(
 	// cant be NULL
-	const rodeo_rectangle_t *destination,
+	const rodeo_rectangle_t destination,
 	// default: entire texture
-	const rodeo_rectangle_t *source,
+	const rodeo_rectangle_t source,
 	// default: white
-	const rodeo_color_RGBAFloat_t *color,
+	const rodeo_color_RGBAFloat_t color,
 	// default: default texture
-	const rodeo_gfx_texture_2d_t *texture
+	const rodeo_gfx_texture_2d_t texture
 )
 {
 	// whether to use default or custom texture
 	float texture_uniform_slot = 0.0;
 
 	rodeo_rectangle_t source_applied;
-	if(source != NULL && texture != NULL)
+	if((source.height != 0 || source.width != 0) && texture.internal_texture != NULL)
 	{
 		source_applied = (rodeo_rectangle_t){
-			.x = source->x / (float)texture->width,
-			.y = source->y / (float)texture->height,
-			.width = source->width / (float)texture->width,
-			.height = source->height / (float)texture->height,
+			.x = source.x / (float)texture.width,
+			.y = source.y / (float)texture.height,
+			.width = source.width / (float)texture.width,
+			.height = source.height / (float)texture.height,
 		};
 	}
 	else
@@ -464,33 +464,21 @@ rodeo_gfx_texture_2d_draw(
 		};
 	}
 
-	rodeo_color_RGBAFloat_t color_applied;
-	if(color != NULL)
-	{
-		color_applied = *color;
-	}
-	else
-	{
-		color_applied = (rodeo_color_RGBAFloat_t){
-			{ 1.0f, 1.0f, 1.0f, 1.0f }
-		};
-	}
-
 	// if not using texture: use default instead
 	// otherwise check what current texture is active
 	//	if none or the same: set it
 	//	if different: flush and then set it
-	if(texture != NULL)
+	if(texture.internal_texture != NULL)
 	{
 		if(irodeo_gfx_state.active_texture_p != NULL)
 		{
-			if(&texture->internal_texture->texture_bgfx != irodeo_gfx_state.active_texture_p)
+			if(&texture.internal_texture->texture_bgfx != irodeo_gfx_state.active_texture_p)
 			{
 				rodeo_gfx_renderer_flush();
 			}
 		}
 		texture_uniform_slot = 1.0;
-		irodeo_gfx_state.active_texture_p = &texture->internal_texture->texture_bgfx;
+		irodeo_gfx_state.active_texture_p = &texture.internal_texture->texture_bgfx;
 	}
 
 
@@ -499,10 +487,10 @@ rodeo_gfx_texture_2d_draw(
 		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
 			(rodeo_gfx_vertex_t)
 			{ 
-				.x = destination->width + destination->x,
-				.y = destination->height + destination->y,
+				.x = destination.width + destination.x,
+				.y = destination.height + destination.y,
 				//.z = 0.0f, 
-				.color = color_applied,
+				.color = color,
 				.texture_id = texture_uniform_slot,
 				.texture_x = source_applied.width + source_applied.x,
 				.texture_y = source_applied.height + source_applied.y,
@@ -511,10 +499,10 @@ rodeo_gfx_texture_2d_draw(
 		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
 			(rodeo_gfx_vertex_t)
 			{ 
-				.x = destination->width + destination->x,
-				.y = destination->y,
+				.x = destination.width + destination.x,
+				.y = destination.y,
 				//.z = 0.0f, 
-				.color = color_applied,
+				.color = color,
 				.texture_id = texture_uniform_slot,
 				.texture_x = source_applied.width + source_applied.x,
 				.texture_y = source_applied.y,
@@ -523,10 +511,10 @@ rodeo_gfx_texture_2d_draw(
 		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
 			(rodeo_gfx_vertex_t)
 			{ 
-				.x = destination->x,
-				.y = destination->y,
+				.x = destination.x,
+				.y = destination.y,
 				//.z = 0.0f, 
-				.color = color_applied,
+				.color = color,
 				.texture_id = texture_uniform_slot,
 				.texture_x = source_applied.x,
 				.texture_y = source_applied.y,
@@ -535,10 +523,10 @@ rodeo_gfx_texture_2d_draw(
 		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
 			(rodeo_gfx_vertex_t)
 			{ 
-				.x = destination->x,
-				.y = destination->height + destination->y,
+				.x = destination.x,
+				.y = destination.height + destination.y,
 				//.z = 0.0f, 
-				.color = color_applied,
+				.color = color,
 				.texture_id = texture_uniform_slot,
 				.texture_x = source_applied.x,
 				.texture_y = source_applied.height + source_applied.y,

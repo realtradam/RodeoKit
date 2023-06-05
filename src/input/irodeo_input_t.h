@@ -4,9 +4,9 @@
 // public
 #include "rodeo/input_t.h"
 
-typedef rodeo_input_scene_t *rodeo_input_scene_p;
+//typedef rodeo_input_scene_t *rodeo_input_scene_p;
 #define i_tag input_scene
-#define i_key rodeo_input_scene_p
+#define i_key rodeo_input_scene_data_t*
 #include <stc/cset.h>
 
 typedef

@@ -25,7 +25,7 @@ rodeo_gfx_renderer_name_get(void);
 void
 rodeo_gfx_renderer_flush(void);
 
-const rodeo_gfx_texture_2d_t*
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_default_get(void);
 
 rodeo_gfx_texture_2d_t
@@ -39,20 +39,20 @@ rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_create_from_path(cstr path);
 
 void
-rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t *texture);
+rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t texture);
 
 void
 rodeo_gfx_rectangle_draw(
-	const rodeo_rectangle_t *rectangle,
-	const rodeo_color_RGBAFloat_t *color
+	const rodeo_rectangle_t rectangle,
+	const rodeo_color_RGBAFloat_t color
 );
 
 void
 rodeo_gfx_texture_2d_draw(
-	const rodeo_rectangle_t *destination,
-	const rodeo_rectangle_t *source,
-	const rodeo_color_RGBAFloat_t *color,
-	const rodeo_gfx_texture_2d_t *texture
+	const rodeo_rectangle_t destination,
+	const rodeo_rectangle_t source,
+	const rodeo_color_RGBAFloat_t color,
+	const rodeo_gfx_texture_2d_t texture
 );
 
 void

@@ -764,7 +764,8 @@ enum
 }
 rodeo_input_binary_mouseButton_t;
 
-typedef enum
+typedef
+enum
 {
     rodeo_input_binary_controllerButton_INVALID = -1,
     rodeo_input_binary_controllerButton_A,
@@ -927,7 +928,7 @@ void*
 #include <stc/cset.h>
 
 #define i_val rodeo_input_boundedRange_controllerAxis_t
-#define i_tag input_boundedRange_controllerAxis
+#define i_tag input_boundedRange_controllerAxes
 #include <stc/cset.h>
 
 #define i_val rodeo_input_unboundedRange_mouse_t
@@ -935,7 +936,7 @@ void*
 #include <stc/cset.h>
 
 #define i_val rodeo_input_binary_controllerButton_t
-#define i_tag input_binary_controllerButton
+#define i_tag input_binary_controllerButtons
 #include <stc/cset.h>
 
 typedef
@@ -949,7 +950,7 @@ struct
 	{
 		cset_input_binary_scancodes scancodes;
 		cset_input_binary_mouseButtons mouse_buttons;
-		cset_input_binary_controllerButton controller_buttons;
+		cset_input_binary_controllerButtons controller_buttons;
 	}
 	binary;
 
@@ -961,7 +962,7 @@ struct
 
 	struct
 	{
-		cset_input_boundedRange_controllerAxis controller_axes;
+		cset_input_boundedRange_controllerAxes controller_axes;
 	}
 	bounded_range;
 	
@@ -972,9 +973,17 @@ struct
 	unbounded_range;
 	
 }
+rodeo_input_command_data_t;
+
+
+typedef
+struct
+{
+	rodeo_input_command_data_t *data;
+}
 rodeo_input_command_t;
 
-#define i_val rodeo_input_command_t*
+#define i_val rodeo_input_command_data_t*
 #define i_tag input_commands
 #include <stc/cset.h>
 
@@ -982,5 +991,13 @@ typedef
 struct
 {
 	cset_input_commands commands;
+}
+rodeo_input_scene_data_t;
+
+
+typedef
+struct
+{
+	rodeo_input_scene_data_t *data;
 }
 rodeo_input_scene_t;

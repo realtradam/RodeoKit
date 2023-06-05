@@ -3,15 +3,15 @@
 #include <stdio.h>
 
 bool detect_collision(
-	const rodeo_collision_2d_world_item_t *a,
-	const rodeo_collision_2d_world_item_t *b
+	const rodeo_collision_2d_world_item_t a,
+	const rodeo_collision_2d_world_item_t b
 )
 {
-	return !(a->id.id == b->id.id ||
-			a->x+a->dx > b->x+b->dx + b->width ||
-			b->x+b->dx > a->x+a->dx + a->width ||
-			a->y+a->dy > b->y+b->dy + b->height ||
-			b->y+b->dy > a->y+a->dy + a->height);
+	return !(a.id.id == b.id.id ||
+			a.rect.x+a.dx > b.rect.x+b.dx + b.rect.width ||
+			b.rect.x+b.dx > a.rect.x+a.dx + a.rect.width ||
+			a.rect.y+a.dy > b.rect.y+b.dy + b.rect.height ||
+			b.rect.y+b.dy > a.rect.y+a.dy + a.rect.height);
 }
 
 rodeo_collision_2d_world_t
@@ -90,7 +90,7 @@ rodeo_collision_2d_world_compare_self(
 {
 	c_foreach(i, cvec_collision_2d_world_item, *world) {
 		c_foreach(j, cvec_collision_2d_world_item, cvec_collision_2d_world_item_advance(i, 1), cvec_collision_2d_world_item_end(world)) {
-			if (detect_collision(i.ref, j.ref)) {
+			if (detect_collision(*i.ref, *j.ref)) {
 				resolve(i.ref, j.ref);
 			}
 		}
@@ -109,7 +109,7 @@ rodeo_collision_2d_world_compare_other(
 {
 	c_foreach(i, cvec_collision_2d_world_item, *world_a) {
 		c_foreach(j, cvec_collision_2d_world_item, *world_b) {
-			if (detect_collision(i.ref, j.ref)) {
+			if (detect_collision(*i.ref, *j.ref)) {
 				resolve(i.ref, j.ref);
 			}
 		}
@@ -132,20 +132,20 @@ int rodeo_collision_2d_item_cmp(
 // from raylib GetCollisionRect
 rodeo_rectangle_t
 rodeo_collision_2d_get_collision_rect(
-    rodeo_collision_2d_world_item_t *a,
-    rodeo_collision_2d_world_item_t *b
+    rodeo_rectangle_t a,
+    rodeo_rectangle_t b
 )
 {
 	rodeo_rectangle_t overlap = { 0 };
 
-    float left = (a->x > b->x)? a->x : b->x;
-    float right1 = a->x + a->width;
-    float right2 = b->x + b->width;
-    float right = (right1 < right2)? right1 : right2;
-    float top = (a->y > b->y)? a->y : b->y;
-    float bottom1 = a->y + a->height;
-    float bottom2 = b->y + b->height;
-    float bottom = (bottom1 < bottom2)? bottom1 : bottom2;
+    float left = (a.x > b.x)? a.x : b.x;
+    float right_a = a.x + a.width;
+    float right_b = b.x + b.width;
+    float right = (right_a < right_b)? right_a : right_b;
+    float top = (a.y > b.y)? a.y : b.y;
+    float bottom_a = a.y + a.height;
+    float bottom_b = b.y + b.height;
+    float bottom = (bottom_a < bottom_b)? bottom_a : bottom_b;
 
     if ((left < right) && (top < bottom))
     {

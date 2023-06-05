@@ -4,13 +4,13 @@
 #include "rodeo/audio.h"
 #include "rodeo/log.h"
 // private
-#include "audio/rodeo_audio_t.h"
+#include "audio/irodeo_audio_t.h"
 
 // -- external --
 #include "SDL.h"
 #include "SDL_mixer.h"
 
-static uint32_t **irodeo_audio_channelPool;
+//static uint32_t **irodeo_audio_channelPool;
 //static uint32_t irodeo_audio_channelPool_num;
 //static uint32_t irodeo_audio_channelPool_size;
 
@@ -92,7 +92,7 @@ rodeo_audio_init(uint32_t channels)
 void
 rodeo_audio_deinit(void)
 {
-	free(irodeo_audio_channelPool);
+	//free(irodeo_audio_channelPool);
 	Mix_Quit();
 }
 
@@ -147,12 +147,13 @@ rodeo_audio_channelPool_volume_get(uint32_t channel_pool_id)
 }
 */
 
-rodeo_audio_sound_t*
+rodeo_audio_sound_t
 rodeo_audio_sound_create_from_path(cstr path)
 {
-	rodeo_audio_sound_t *sample_sound = malloc(sizeof(rodeo_audio_sound_t));
-	sample_sound->sdl_sound = Mix_LoadWAV(cstr_str(&path));
-	if(NULL == sample_sound->sdl_sound)
+	rodeo_audio_sound_t sample_sound = {0};
+	sample_sound.data = calloc(1, sizeof(*sample_sound.data));
+	sample_sound.data->sdl_sound = Mix_LoadWAV(cstr_str(&path));
+	if(NULL == sample_sound.data->sdl_sound)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -164,18 +165,17 @@ rodeo_audio_sound_create_from_path(cstr path)
 }
 
 void
-rodeo_audio_sound_destroy(rodeo_audio_sound_t* sound)
+rodeo_audio_sound_destroy(rodeo_audio_sound_t sound)
 {
-	Mix_FreeChunk(sound->sdl_sound);
-	free(sound);
+	Mix_FreeChunk(sound.data->sdl_sound);
 }
 
-rodeo_audio_music_t*
+rodeo_audio_music_t
 rodeo_audio_music_create_from_path(cstr path)
 {
-	rodeo_audio_music_t *sample_music = malloc(sizeof(rodeo_audio_music_t));
-	sample_music->sdl_music = Mix_LoadMUS(cstr_str(&path));
-	if(NULL == sample_music->sdl_music)
+	rodeo_audio_music_t sample_music = {0};
+	sample_music.data->sdl_music = Mix_LoadMUS(cstr_str(&path));
+	if(NULL == sample_music.data->sdl_music)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
@@ -187,31 +187,30 @@ rodeo_audio_music_create_from_path(cstr path)
 }
 
 void
-rodeo_audio_music_destroy(rodeo_audio_music_t* music)
+rodeo_audio_music_destroy(rodeo_audio_music_t music)
 {
-	Mix_FreeMusic(music->sdl_music);
-	free(music);
+	Mix_FreeMusic(music.data->sdl_music);
 }
 
 
 void
-rodeo_audio_sound_play(rodeo_audio_sound_t *sound) //, uint32_t channel_pool_id)
+rodeo_audio_sound_play(rodeo_audio_sound_t sound) //, uint32_t channel_pool_id)
 {
-	Mix_PlayChannel(-1, sound->sdl_sound, 0);
+	Mix_PlayChannel(-1, sound.data->sdl_sound, 0);
 }
 
 void
-rodeo_audio_music_play(rodeo_audio_music_t *music) //, uint32_t channel_pool_id)
+rodeo_audio_music_play(rodeo_audio_music_t music) //, uint32_t channel_pool_id)
 {
 	rodeo_audio_music_stop();
-	Mix_PlayMusic(music->sdl_music, 0);
+	Mix_PlayMusic(music.data->sdl_music, 0);
 }
 
 void
-rodeo_audio_music_play_fadeIn(rodeo_audio_music_t *music, uint32_t fade_duration_milliseconds)
+rodeo_audio_music_play_fadeIn(rodeo_audio_music_t music, uint32_t fade_duration_milliseconds)
 {
 	rodeo_audio_music_stop();
-	Mix_FadeInMusic(music->sdl_music, 0, (int32_t)fade_duration_milliseconds);
+	Mix_FadeInMusic(music.data->sdl_music, 0, (int32_t)fade_duration_milliseconds);
 }
 
 void

@@ -1,5 +1,9 @@
 #pragma once
 
+// -- internal --
+// public
+#include "rodeo_types.h"
+
 // -- system --
 #include <stdint.h>
 #include <stdbool.h>
@@ -17,13 +21,9 @@ typedef
 struct
 {
     world_id id;
-	float x;
-	float y;
+	rodeo_rectangle_t rect;
 	float dx;
 	float dy;
-	bool is_circle;
-	float width;
-	float height;
 }
 rodeo_collision_2d_world_item_t;
 

@@ -1,13 +1,14 @@
 #pragma once
 
+// -- internal --
+// public
+#include "rodeo/audio_t.h"
+
 // -- external --
 #include "stc/cstr.h"
 
 // -- system --
 #include <inttypes.h>
-
-typedef struct rodeo_audio_sound_t rodeo_audio_sound_t;
-typedef struct rodeo_audio_music_t rodeo_audio_music_t;
 
 void
 rodeo_audio_init(
@@ -52,26 +53,26 @@ float
 rodeo_audio_channelPool_volume_get(uint32_t channel_pool_id);
 */
 
-rodeo_audio_sound_t*
+rodeo_audio_sound_t
 rodeo_audio_sound_create_from_path(cstr path);
 
 void
-rodeo_audio_sound_destroy(rodeo_audio_sound_t* sound);
+rodeo_audio_sound_destroy(rodeo_audio_sound_t sound);
 
-rodeo_audio_music_t*
+rodeo_audio_music_t
 rodeo_audio_music_create_from_path(cstr path);
 
 void
-rodeo_audio_music_destroy(rodeo_audio_music_t* music);
+rodeo_audio_music_destroy(rodeo_audio_music_t music);
 
 void
-rodeo_audio_sound_play(rodeo_audio_sound_t *sound);
+rodeo_audio_sound_play(rodeo_audio_sound_t sound);
 
 void
-rodeo_audio_music_play(rodeo_audio_music_t *music);
+rodeo_audio_music_play(rodeo_audio_music_t music);
 
 void
-rodeo_audio_music_play_fadeIn(rodeo_audio_music_t *music, uint32_t fade_duration_milliseconds);
+rodeo_audio_music_play_fadeIn(rodeo_audio_music_t music, uint32_t fade_duration_milliseconds);
 
 void
 rodeo_audio_music_stop(void);
