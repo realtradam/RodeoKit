@@ -21,10 +21,11 @@ bool irodeo_collision_2d_detect(
 }
 
 rodeo_collision_2d_collection_t
-rodeo_collision_2d_collection_create(void)
+rodeo_collision_2d_collection_create(intptr_t initial_capacity)
 {
 	rodeo_collision_2d_collection_t result = {0};
 	result.data = calloc(1, sizeof(*result.data));
+	cvec_collision_2d_item_data_reserve(&result.data->collection, initial_capacity);
 	return result;
 }
 

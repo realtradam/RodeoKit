@@ -5,7 +5,7 @@
 #include "rodeo_types.h"
 
 rodeo_collision_2d_collection_t
-rodeo_collision_2d_collection_create(void);
+rodeo_collision_2d_collection_create(intptr_t initial_capacity);
 
 void
 rodeo_collision_2d_collection_destroy(
