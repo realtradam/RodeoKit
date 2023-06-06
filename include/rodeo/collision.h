@@ -4,52 +4,46 @@
 #include "rodeo/collision_t.h"
 #include "rodeo_types.h"
 
-rodeo_collision_2d_world_t
-rodeo_collision_2d_world_create(void);
+rodeo_collision_2d_collection_t
+rodeo_collision_2d_collection_create(void);
 
 void
-rodeo_collision_2d_world_destroy(
-	rodeo_collision_2d_world_t *world
+rodeo_collision_2d_collection_destroy(
+	rodeo_collision_2d_collection_t collection
 );
 
-cvec_collision_2d_world_item_value*
-rodeo_collision_2d_world_item_create(
-	rodeo_collision_2d_world_t *world,
-	rodeo_collision_2d_world_item_t item_params
-);
-
-void
-rodeo_collision_2d_world_item_destroy(
-	cvec_collision_2d_world_item_value* cvec_value
+rodeo_collision_2d_item_t
+rodeo_collision_2d_item_create(
+	rodeo_collision_2d_collection_t collection,
+	rodeo_collision_2d_item_data_t item_params
 );
 
 void
-rodeo_collision_2d_world_item_destroy_by_id(
-    world_id id
-);
-
-rodeo_collision_2d_world_item_t*
-rodeo_collision_2d_world_item_get_by_id(
-    world_id id
+rodeo_collision_2d_item_destroy(
+	rodeo_collision_2d_item_t item
 );
 
 void
-rodeo_collision_2d_world_compare_self(
-	rodeo_collision_2d_world_t *world,
-	void (*resolve)(
-		rodeo_collision_2d_world_item_t *a,
-		rodeo_collision_2d_world_item_t *b
-	)
+rodeo_collision_2d_item_destroy_by_id(
+    rodeo_collision_2d_item_id_t id
+);
+
+rodeo_collision_2d_item_t
+rodeo_collision_2d_item_get_by_id(
+    rodeo_collision_2d_item_id_t id
 );
 
 void
-rodeo_collision_2d_world_compare_other(
-	rodeo_collision_2d_world_t *world_a,
-	rodeo_collision_2d_world_t *world_b,
-	void (*resolve)(
-		rodeo_collision_2d_world_item_t *a,
-		rodeo_collision_2d_world_item_t *b
-	)
+rodeo_collision_2d_collection_compare_self(
+	rodeo_collision_2d_collection_t collection,
+	rodeo_collision_2d_resolver_f resolver
+);
+
+void
+rodeo_collision_2d_collection_compare_other(
+	rodeo_collision_2d_collection_t collection_a,
+	rodeo_collision_2d_collection_t collection_b,
+	rodeo_collision_2d_resolver_f resolver
 );
 
 // from raylib GetCollisionRect
