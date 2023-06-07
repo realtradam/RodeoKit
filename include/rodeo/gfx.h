@@ -8,7 +8,7 @@
 #include "stc/cstr.h"
 
 void
-rodeo_gfx_init(void);
+rodeo_gfx_init(float width, float height);
 
 void
 rodeo_gfx_deinit(void);
@@ -79,19 +79,21 @@ rodeo_gfx_frame_limit_set(uint32_t limit);
 uint32_t
 rodeo_gfx_frame_limit_get(void);
 
-#define							\
-mrodeo_gfx_do(					\
-)								\
-	mrodeo_defer_do(			\
-		rodeo_gfx_init(),		\
-		rodeo_gfx_deinit()		\
+#define									\
+mrodeo_gfx_do(							\
+	width,								\
+	height								\
+)										\
+	mrodeo_defer_do(					\
+		rodeo_gfx_init(width, height),	\
+		rodeo_gfx_deinit()				\
 	)
 
 
-#define									\
-mrodeo_gfx_frame_do(					\
-)										\
-	mrodeo_defer_do(					\
+#define								\
+mrodeo_gfx_frame_do(				\
+)									\
+	mrodeo_defer_do(				\
 		rodeo_gfx_frame_begin(),	\
 		rodeo_gfx_frame_end()		\
 	)

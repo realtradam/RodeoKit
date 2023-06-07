@@ -21,10 +21,10 @@ rodeo_window_init(
 void
 rodeo_window_deinit(void);
 
-uint16_t
+uint32_t
 rodeo_window_screen_width_get(void);
 
-uint16_t
+uint32_t
 rodeo_window_screen_height_get(void);
 
 bool

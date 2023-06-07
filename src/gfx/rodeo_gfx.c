@@ -20,12 +20,14 @@
 static irodeo_gfx_state_t irodeo_gfx_state = {0};
 
 void
-rodeo_gfx_init(void)
+rodeo_gfx_init(float width, float height)
 {
 
 #ifdef __EMSCRIPTEN__
 	bgfx_render_frame(-1);
 #endif
+	irodeo_gfx_state.target_width = width;
+	irodeo_gfx_state.target_height = height;
 
 	bgfx_platform_data_t pd = {0};
 	memset(&pd, 0, sizeof(bgfx_platform_data_t));
@@ -59,7 +61,8 @@ rodeo_gfx_init(void)
 	bgfx_set_view_clear(
 		0,
 		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
-		0x443355FF,
+		//0x443355FF,
+		0x000000FF,
 		1.0f,
 		0
 	);
@@ -205,23 +208,49 @@ rodeo_gfx_frame_begin(void)
 	glm_mat4_identity(irodeo_gfx_state.view_matrix);
 
 	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
+	
+	// scale the game screen to fit window size with letterbox
+	//	what size we declare the game screen to be within
+	const float target_width = irodeo_gfx_state.target_width;
+	const float target_height = irodeo_gfx_state.target_height;
+	//	what the calculated size is to fit in the window
+	float result_width = target_width;
+	float result_height = target_height;
+	const float game_aspect = target_width / target_height;
+	const float window_aspect = (float)rodeo_window_screen_width_get()/(float)rodeo_window_screen_height_get();
+	if(window_aspect > game_aspect)
+	{
+		result_width /= (game_aspect) / window_aspect;
+	}
+	else
+	{
+		result_height *= (game_aspect) / window_aspect;
+	}
 
-	// TODO: figure out if why 'zo' is correct
-	// but 'no' is incorrect
+	// make the game screen centered in the window.
+	//	"2" is 1 full screen width, therefore we multiply
+	//	the target and result ratio by 1 for it to be a
+	//	half of the screen size
+	vec3 offset = {
+		1 - (1 * (target_width / result_width)), // x
+		-(1 - (1 * (target_height / result_height))), // y
+		0
+	};
+
 	glm_ortho_rh_zo( 
 		0,
-		(float)rodeo_window_screen_width_get(),
-		(float)rodeo_window_screen_height_get(),
+		result_width,
+		result_height,
 		0,
-		// near
-		-0.1f,
-		// far
+		-100.0f,
 		100.0f,
 		irodeo_gfx_state.proj_matrix
 	);
 
+	glm_translated(irodeo_gfx_state.proj_matrix, offset);
+
 	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix, irodeo_gfx_state.proj_matrix);
-	bgfx_set_view_rect(0, 0, 0, rodeo_window_screen_width_get(), rodeo_window_screen_height_get());
+	bgfx_set_view_rect(0, 0, 0, (uint16_t)rodeo_window_screen_width_get(), (uint16_t)rodeo_window_screen_height_get());
 
 	irodeo_gfx_render_buffer_transient_alloc();
 	bgfx_touch(0);

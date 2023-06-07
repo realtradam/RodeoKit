@@ -100,7 +100,6 @@ rodeo_window_init(
 		"Success getting driver specific information"
 	);
 #endif
-
 }
 
 void
@@ -110,15 +109,31 @@ rodeo_window_deinit(void)
 	SDL_Quit();
 }
 
-uint16_t
+void
+irodeo_window_update_screen_size(void)
+{
+	int32_t width = 0;
+	int32_t height = 0;
+	SDL_GetWindowSize(
+		irodeo_window_state.window,
+		&width,
+		&height
+	);
+	irodeo_window_state.screen_width = (uint32_t)width;
+	irodeo_window_state.screen_height = (uint32_t)height;
+}
+
+uint32_t
 rodeo_window_screen_width_get(void)
 {
+	irodeo_window_update_screen_size();
 	return irodeo_window_state.screen_width;
 }
 
-uint16_t
+uint32_t
 rodeo_window_screen_height_get(void)
 {
+	irodeo_window_update_screen_size();
 	return irodeo_window_state.screen_height;
 }
 

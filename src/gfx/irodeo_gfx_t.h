@@ -31,6 +31,8 @@ struct
 	bgfx_shader_handle_t fragment_shader;
 	bgfx_program_handle_t program_shader;
 	bgfx_uniform_handle_t texture_uniforms[2];
+	float target_width;
+	float target_height;
 	mat4 view_matrix;
 	mat4 proj_matrix;
 	uint64_t frame_count;
