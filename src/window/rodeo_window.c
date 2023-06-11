@@ -14,15 +14,15 @@ static irodeo_window_state_t irodeo_window_state = {0};
 
 void
 rodeo_window_init(
-	uint16_t screen_height,
-	uint16_t screen_width,
+	uint16_t width,
+	uint16_t height,
 	cstr title
 )
 {
 	irodeo_window_state.window = NULL;
 	irodeo_window_state.screen_surface = NULL;
-	irodeo_window_state.screen_height = screen_height;
-	irodeo_window_state.screen_width = screen_width;
+	irodeo_window_state.height = height;
+	irodeo_window_state.width = width;
 
 	rodeo_log(
 		rodeo_logLevel_info,
@@ -58,8 +58,8 @@ rodeo_window_init(
 			cstr_str(&title),
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
-			screen_width,
-			screen_height,
+			width,
+			height,
 			SDL_WINDOW_SHOWN //| SDL_WINDOW_RESIZABLE
 			);
 	if(irodeo_window_state.window == NULL)
@@ -110,7 +110,7 @@ rodeo_window_deinit(void)
 }
 
 void
-irodeo_window_update_screen_size(void)
+irodeo_window_dimensions_update(void)
 {
 	int32_t width = 0;
 	int32_t height = 0;
@@ -119,34 +119,22 @@ irodeo_window_update_screen_size(void)
 		&width,
 		&height
 	);
-	irodeo_window_state.screen_width = (uint32_t)width;
-	irodeo_window_state.screen_height = (uint32_t)height;
+	irodeo_window_state.width = (uint32_t)width;
+	irodeo_window_state.height = (uint32_t)height;
 }
 
 uint32_t
-rodeo_window_screen_width_get(void)
+rodeo_window_width_get(void)
 {
-	irodeo_window_update_screen_size();
-	return irodeo_window_state.screen_width;
+	//irodeo_window_update_screen_size();
+	return irodeo_window_state.width;
 }
 
 uint32_t
-rodeo_window_screen_height_get(void)
+rodeo_window_height_get(void)
 {
-	irodeo_window_update_screen_size();
-	return irodeo_window_state.screen_height;
-}
-
-void
-irodeo_window_screen_width_setVar(uint16_t width)
-{
-	irodeo_window_state.screen_width = width;
-}
-
-void
-irodeo_window_screen_height_setVar(uint16_t height)
-{
-	irodeo_window_state.screen_height = height;
+	//irodeo_window_update_screen_size();
+	return irodeo_window_state.height;
 }
 
 bool

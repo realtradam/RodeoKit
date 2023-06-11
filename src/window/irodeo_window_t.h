@@ -14,8 +14,8 @@ struct
 	SDL_Window* window;
 	SDL_Surface* screen_surface;
 	SDL_SysWMinfo wmi;
-	uint32_t screen_width;
-	uint32_t screen_height;
+	uint32_t width;
+	uint32_t height;
 	bool quit;
 }
 irodeo_window_state_t;

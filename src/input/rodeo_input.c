@@ -2,11 +2,12 @@
 // -- internal --
 // public
 #include "rodeo/input.h"
-#include "irodeo_input_t.h"
 #include "rodeo/log.h"
 #include "rodeo/window.h"
+#include "rodeo/gfx.h"
 // private
 #include "rodeo_internal.h"
+#include "input/irodeo_input.h"
 #include "window/irodeo_window.h"
 
 // -- external --
@@ -17,6 +18,100 @@
 #include <inttypes.h>
 
 static irodeo_input_state_t istate = {0};
+
+float
+irodeo_input_screen_to_world_x(float input)
+{
+	float gfx_width = rodeo_gfx_width_get();
+	float gfx_height = rodeo_gfx_height_get();
+	float win_width = (float)rodeo_window_width_get();
+	float win_height = (float)rodeo_window_height_get();
+	float gfx_aspect = gfx_width / gfx_height;
+	float win_aspect = win_width / win_height;
+	float aspect_compare = gfx_aspect / win_aspect;
+
+	if(win_aspect <= gfx_aspect)
+	{
+		return (input / win_width) * gfx_width;
+	}
+	else
+	{
+		float remainder = (win_width - ((gfx_aspect) * win_height)) / 2.0f;
+		float conversion = win_width * aspect_compare;
+		return ((input - remainder) / conversion) * gfx_width;
+	}
+}
+
+float
+irodeo_input_screen_to_world_y(float input)
+{
+	float gfx_width = rodeo_gfx_width_get();
+	float gfx_height = rodeo_gfx_height_get();
+	float win_width = (float)rodeo_window_width_get();
+	float win_height = (float)rodeo_window_height_get();
+	float gfx_aspect = gfx_width / gfx_height;
+	float win_aspect = win_width / win_height;
+	float aspect_compare = gfx_aspect / win_aspect;
+
+	if(win_aspect < gfx_aspect)
+	{
+		float remainder = (win_height - ((1.0f/gfx_aspect) * win_width)) / 2.0f;
+		float conversion = win_height / aspect_compare;
+		return (((input - remainder) / conversion) * gfx_height);
+	}
+	else
+	{
+		return (input / win_height) * gfx_height;
+	}
+}
+
+float
+irodeo_input_screen_to_world_dx(float input)
+{
+	float gfx_width = rodeo_gfx_width_get();
+	float gfx_height = rodeo_gfx_height_get();
+	float win_width = (float)rodeo_window_width_get();
+	float win_height = (float)rodeo_window_height_get();
+	float gfx_aspect = gfx_width / gfx_height;
+	float win_aspect = win_width / win_height;
+	float aspect_compare = gfx_aspect / win_aspect;
+
+	if(win_aspect <= gfx_aspect)
+	{
+		return input * (gfx_width / win_width);
+	}
+	else
+	{
+		float remainder = (win_width - ((gfx_aspect) * win_height)) / 2.0f;
+		float conversion = win_width * aspect_compare;
+		return ((input - remainder) / conversion) * gfx_width;
+	}
+}
+
+float
+irodeo_input_screen_to_world_dy(float input)
+{
+	float gfx_width = rodeo_gfx_width_get();
+	float gfx_height = rodeo_gfx_height_get();
+	float win_width = (float)rodeo_window_width_get();
+	float win_height = (float)rodeo_window_height_get();
+	float gfx_aspect = gfx_width / gfx_height;
+	float win_aspect = win_width / win_height;
+	float aspect_compare = gfx_aspect / win_aspect;
+
+	if(win_aspect < gfx_aspect)
+	{
+		//float remainder = (win_height - ((1.0f/gfx_aspect) * win_width)) / 2.0f;
+		//float conversion = win_height / aspect_compare;
+		//return (((input - remainder) / conversion) * gfx_height);
+		return input;
+	}
+	else
+	{
+		//return (input / win_height) * gfx_height;
+		return input;
+	}
+}
 
 bool
 rodeo_input_poll(void)
@@ -43,8 +138,7 @@ rodeo_input_poll(void)
 						BGFX_RESET_VSYNC,
 						BGFX_TEXTURE_FORMAT_COUNT
 					);
-					irodeo_window_screen_width_setVar((uint16_t)width);
-					irodeo_window_screen_height_setVar((uint16_t)height);
+					irodeo_window_dimensions_update();
 					}
 				}
 				// keep going, to check for inputs
@@ -154,7 +248,7 @@ rodeo_input_poll(void)
 							if(x_value != NULL)
 							{
 								rodeo_input_any_state_t input_state = {
-									.data.positional_state = event.motion.x,
+									.data.positional_state = (int64_t)irodeo_input_screen_to_world_x((float)event.motion.x),
 									.type = rodeo_input_type_Positional
 								};
 								c_foreach(
@@ -170,7 +264,7 @@ rodeo_input_poll(void)
 							if(y_value != NULL)
 							{
 								rodeo_input_any_state_t input_state = {
-									.data.positional_state = event.motion.y,
+									.data.positional_state = (int64_t)irodeo_input_screen_to_world_y((float)event.motion.y),
 									.type = rodeo_input_type_Positional
 								};
 								c_foreach(
@@ -185,7 +279,7 @@ rodeo_input_poll(void)
 							if(rel_x_value != NULL)
 							{
 								rodeo_input_any_state_t input_state = {
-									.data.unbounded_range_state = (float)event.motion.xrel,
+									.data.unbounded_range_state = irodeo_input_screen_to_world_dx((float)event.motion.xrel),
 									.type = rodeo_input_type_UnboundedRange
 								};
 								c_foreach(
@@ -201,7 +295,7 @@ rodeo_input_poll(void)
 							if(rel_y_value != NULL)
 							{
 								rodeo_input_any_state_t input_state = {
-									.data.unbounded_range_state = (float)event.motion.yrel,
+									.data.unbounded_range_state = irodeo_input_screen_to_world_dy((float)event.motion.yrel),
 									.type = rodeo_input_type_UnboundedRange
 								};
 								c_foreach(

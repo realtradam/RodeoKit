@@ -15,10 +15,7 @@ SDL_Surface *
 irodeo_window_surface_get(void);
 
 void
-irodeo_window_screen_width_setVar(uint16_t width);
-
-void
-irodeo_window_screen_height_setVar(uint16_t height);
+irodeo_window_dimensions_update(void);
 
 SDL_Window *
 irodeo_window_get(void);

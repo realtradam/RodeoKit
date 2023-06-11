@@ -19,6 +19,12 @@ rodeo_gfx_frame_begin(void);
 void
 rodeo_gfx_frame_end(void);
 
+float
+rodeo_gfx_width_get(void);
+
+float
+rodeo_gfx_height_get(void);
+
 cstr
 rodeo_gfx_renderer_name_get(void);
 

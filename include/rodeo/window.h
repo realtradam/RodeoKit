@@ -22,10 +22,10 @@ void
 rodeo_window_deinit(void);
 
 uint32_t
-rodeo_window_screen_width_get(void);
+rodeo_window_width_get(void);
 
 uint32_t
-rodeo_window_screen_height_get(void);
+rodeo_window_height_get(void);
 
 bool
 rodeo_window_shouldQuit(void);
@@ -35,14 +35,14 @@ rodeo_window_quit(void);
 
 #define								\
 mrodeo_window_do(					\
-	screen_height,					\
 	screen_width,					\
+	screen_height,					\
 	title							\
 )									\
 	mrodeo_defer_do(				\
 		rodeo_window_init(			\
-			screen_height,			\
 			screen_width,			\
+			screen_height,			\
 			title					\
 		),							\
 		rodeo_window_deinit()		\

@@ -46,8 +46,8 @@ rodeo_gfx_init(float width, float height)
 	//init.type = BGFX_RENDERER_TYPE_COUNT; // auto determine renderer
 	init.type = BGFX_RENDERER_TYPE_OPENGL; // force opengl renderer
 	//SDL_GetWindowSize(irodeo_gfx_state.window, &irodeo_gfx_state.screen_width, &irodeo_gfx_state.screen_height);
-	init.resolution.width = rodeo_window_screen_height_get();
-	init.resolution.height = rodeo_window_screen_width_get();
+	init.resolution.width = rodeo_window_height_get();
+	init.resolution.height = rodeo_window_width_get();
 	init.resolution.reset = BGFX_RESET_VSYNC;
 	init.platformData = pd;
 	bgfx_init(&init);
@@ -174,8 +174,8 @@ rodeo_gfx_init(float width, float height)
 	SDL_SetWindowResizable(irodeo_window_get(), true);
 
 	bgfx_reset(
-		(uint32_t)rodeo_window_screen_width_get(),
-		(uint32_t)rodeo_window_screen_height_get(),
+		(uint32_t)rodeo_window_width_get(),
+		(uint32_t)rodeo_window_height_get(),
 		//BGFX_RESET_MSAA_X16 | BGFX_RESET_MAXANISOTROPY,
 		BGFX_RESET_VSYNC,
 		BGFX_TEXTURE_FORMAT_COUNT
@@ -217,7 +217,7 @@ rodeo_gfx_frame_begin(void)
 	float result_width = target_width;
 	float result_height = target_height;
 	const float game_aspect = target_width / target_height;
-	const float window_aspect = (float)rodeo_window_screen_width_get()/(float)rodeo_window_screen_height_get();
+	const float window_aspect = (float)rodeo_window_width_get()/(float)rodeo_window_height_get();
 	if(window_aspect > game_aspect)
 	{
 		result_width /= (game_aspect) / window_aspect;
@@ -250,7 +250,7 @@ rodeo_gfx_frame_begin(void)
 	glm_translated(irodeo_gfx_state.proj_matrix, offset);
 
 	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix, irodeo_gfx_state.proj_matrix);
-	bgfx_set_view_rect(0, 0, 0, (uint16_t)rodeo_window_screen_width_get(), (uint16_t)rodeo_window_screen_height_get());
+	bgfx_set_view_rect(0, 0, 0, (uint16_t)rodeo_window_width_get(), (uint16_t)rodeo_window_height_get());
 
 	irodeo_gfx_render_buffer_transient_alloc();
 	bgfx_touch(0);
@@ -277,6 +277,18 @@ rodeo_gfx_frame_end(void)
 #else
 	irodeo_gfx_state.frame_time = (1.0f/60.f) * 1000; //((float)(state.end_frame - state.start_frame) * 1000.0f / (float)SDL_GetPerformanceFrequency());
 #endif
+}
+
+float
+rodeo_gfx_width_get(void)
+{
+	return irodeo_gfx_state.target_width;
+}
+
+float
+rodeo_gfx_height_get(void)
+{
+	return irodeo_gfx_state.target_height;
 }
 
 float
