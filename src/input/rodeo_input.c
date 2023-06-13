@@ -74,7 +74,6 @@ irodeo_input_screen_to_world_dx(float input)
 	float win_height = (float)rodeo_window_height_get();
 	float gfx_aspect = gfx_width / gfx_height;
 	float win_aspect = win_width / win_height;
-	float aspect_compare = gfx_aspect / win_aspect;
 
 	if(win_aspect <= gfx_aspect)
 	{
@@ -82,9 +81,7 @@ irodeo_input_screen_to_world_dx(float input)
 	}
 	else
 	{
-		float remainder = (win_width - ((gfx_aspect) * win_height)) / 2.0f;
-		float conversion = win_width * aspect_compare;
-		return ((input - remainder) / conversion) * gfx_width;
+		return (input / win_height) * gfx_height;
 	}
 }
 
@@ -97,19 +94,14 @@ irodeo_input_screen_to_world_dy(float input)
 	float win_height = (float)rodeo_window_height_get();
 	float gfx_aspect = gfx_width / gfx_height;
 	float win_aspect = win_width / win_height;
-	float aspect_compare = gfx_aspect / win_aspect;
 
-	if(win_aspect < gfx_aspect)
+	if(win_aspect <= gfx_aspect)
 	{
-		//float remainder = (win_height - ((1.0f/gfx_aspect) * win_width)) / 2.0f;
-		//float conversion = win_height / aspect_compare;
-		//return (((input - remainder) / conversion) * gfx_height);
-		return input;
+		return input * (gfx_width / win_width);
 	}
 	else
 	{
-		//return (input / win_height) * gfx_height;
-		return input;
+		return (input / win_height) * gfx_height;
 	}
 }
 

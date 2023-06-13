@@ -25,6 +25,12 @@ rodeo_gfx_width_get(void);
 float
 rodeo_gfx_height_get(void);
 
+rodeo_rectangle_t
+rodeo_gfx_letterbox_first_get(void);
+
+rodeo_rectangle_t
+rodeo_gfx_letterbox_second_get(void);
+
 cstr
 rodeo_gfx_renderer_name_get(void);
 
