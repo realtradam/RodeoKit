@@ -105,7 +105,7 @@ rodeo_collision_2d_item_destroy(
 }
 
 void
-rodeo_collision_2d_collection_item_destroy_by_id(
+rodeo_collision_2d_item_destroy_by_id(
 	rodeo_collision_2d_item_id_t id
 )
 {
