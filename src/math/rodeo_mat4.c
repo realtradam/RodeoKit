@@ -67,7 +67,7 @@ rodeo_math_mat4_t
 rodeo_math_mat4_translate(rodeo_math_mat4_t m, rodeo_math_vec3_t v)
 {
 	return irodeo_math_cglmMat4_to_rodeoMat4(
-			glms_translated(
+			glms_translate(
 				irodeo_math_rodeoMat4_to_cglmMat4(m),
 				irodeo_math_rodeoVec3_to_cglmVec3(v)
 			)
