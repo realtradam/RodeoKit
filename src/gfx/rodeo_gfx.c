@@ -363,32 +363,33 @@ rodeo_gfx_frame_begin(void)
 	};
 
 	// apply translation * orthographic
-	glm_mat4_mul(old_proj_matrix, old_ortho, old_proj_matrix);
 	glm_translate(old_proj_matrix, old_offset);
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"old translation apply to identity"
-	);
-	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
+		rodeo_log(
+			rodeo_logLevel_warning,
+			"old translation apply to identity"
+		);
+		irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
 
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"new translation apply to identity"
-	);
-	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
-	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
+		rodeo_log(
+			rodeo_logLevel_warning,
+			"new translation apply to identity"
+		);
+		irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
+	//irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, irodeo_math_cglmMat4_to_rodeoMat4(old_ortho));
 
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"old ortho apply to identity"
-	);
-	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"new ortho apply to identity"
-	);
-	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
+		rodeo_log(
+			rodeo_logLevel_warning,
+			"old ortho apply to identity"
+		);
+	glm_mat4_mul(old_proj_matrix, old_ortho, old_proj_matrix);
+		irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
+		rodeo_log(
+			rodeo_logLevel_warning,
+			"new ortho apply to identity"
+		);
+		irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 
 	// push the result to bgfx
 	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
