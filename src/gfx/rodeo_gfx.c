@@ -255,6 +255,8 @@ rodeo_gfx_frame_begin(void)
 		result_height *= (game_aspect) / window_aspect;
 	}
 
+
+	//irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 	// --- 
 
 	// get identity
@@ -301,17 +303,15 @@ rodeo_gfx_frame_begin(void)
 	};
 
 	// apply translation * orthographic
-	//glm_translated(old_proj_matrix, old_offset);
 	glm_translate(old_proj_matrix, old_offset);
 	glm_mat4_mul(old_proj_matrix, old_ortho, old_proj_matrix);
 
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
 
-	//irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
-
-	//bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
-	bgfx_set_view_transform(0, old_view_matrix, old_proj_matrix);
+	// push the result to bgfx
+	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
+	//bgfx_set_view_transform(0, old_view_matrix, old_proj_matrix);
 	
 	// ---
 
