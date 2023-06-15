@@ -236,17 +236,6 @@ irodeo_print_matrix(rodeo_math_mat4_t mat)
 	void
 rodeo_gfx_frame_begin(void)
 {
-	//vec3 eye = {0.0f, 0.0f, -35.0f};
-	//vec3 center = {0.0f, 0.0f, 0.0f};
-	//vec3 up = {0, 1, 0};
-
-	//glm_lookat(eye, center, up, view);
-
-	mat4 oldway_view_matrix;
-	glm_mat4_identity(oldway_view_matrix);
-	irodeo_gfx_state.view_matrix = rodeo_math_mat4_identity();
-
-	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
 
 	// scale the game screen to fit window size with letterbox
 	//	what size we declare the game screen to be within
@@ -266,38 +255,30 @@ rodeo_gfx_frame_begin(void)
 		result_height *= (game_aspect) / window_aspect;
 	}
 
-	// make the game screen centered in the window.
-	//	"2" is 1 full screen width, therefore we multiply
-	//	the target and result ratio by 1 for it to be a
-	//	half of the screen size
-	vec3 oldway_offset = {
-		1 - (1 * (target_width / result_width)),
-		-(1 - (1 * (target_height / result_height))),
-		0
-	};
-	rodeo_math_vec3_t offset = {
-		.x = 1 - (1 * (target_width / result_width)),
-		.y = -(1 - (1 * (target_height / result_height))),
-		.z = 0
-	};
+	// --- 
 
-	mat4 oldway_proj_matrix;
-	glm_mat4_identity(oldway_proj_matrix);
+	// get identity
+	mat4 old_view_matrix;
+	glm_mat4_identity(old_view_matrix);
+	mat4 old_proj_matrix;
+	glm_mat4_identity(old_proj_matrix);
+
+	irodeo_gfx_state.view_matrix = rodeo_math_mat4_identity();
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_identity();
 
-	//rodeo_math_mat4_t translation = rodeo_math_mat4_identity();
-	rodeo_math_mat4_t translation = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
-	//irodeo_print_matrix(translation);
+	// calculate orthographic
+	mat4 old_ortho;
+	glm_ortho_rh_zo(
+		0,
+		result_width,
+		result_height,
+		0,
+		-100.0f,
+		100.0f,
+		old_ortho //old_proj_matrix
+	);
 
-	//rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic( 
-	//	0 - (game_aspect < window_aspect ? rodeo_gfx_letterbox_first_get().width : 0),
-	//	result_width - (game_aspect < window_aspect ? rodeo_gfx_letterbox_first_get().width : 0),
-	//	result_height - (game_aspect > window_aspect ? rodeo_gfx_letterbox_first_get().height : 0),
-	//	0 - (game_aspect > window_aspect ? rodeo_gfx_letterbox_first_get().height : 0),
-	//	-100.0f,
-	//	100.0f
-	//);
-	rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic( 
+	rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic(
 		0,
 		result_width,
 		result_height,
@@ -305,27 +286,35 @@ rodeo_gfx_frame_begin(void)
 		-100.0f,
 		100.0f
 	);
-	glm_ortho( 
-		0,
-		result_width,
-		result_height,
-		0,
-		-100.0f,
-		100.0f,
-		oldway_proj_matrix
-	);
-	glm_translate(oldway_proj_matrix, oldway_offset);
-	//irodeo_print_matrix(ortho);
 
-	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(ortho, offset);
-	//irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(ortho, translation);
-	//irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(ortho, offset);
-	//irodeo_gfx_state.proj_matrix = ortho;
-	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
-	//irodeo_gfx_state.proj_matrix = ortho;
+	// calculate translation
+	vec3 old_offset = {
+		1 - (1 * (target_width / result_width)), // x
+		-(1 - (1 * (target_height / result_height))), // y
+		0
+	};
 
-	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
-	//bgfx_set_view_transform(0, oldway_view_matrix, irodeo_gfx_state.proj_matrix.raw);
+	rodeo_math_vec3_t offset = {
+		.x = 1 - (1 * (target_width / result_width)), // x
+		.y = -(1 - (1 * (target_height / result_height))), // y
+		.z = 0
+	};
+
+	// apply translation * orthographic
+	//glm_translated(old_proj_matrix, old_offset);
+	glm_translate(old_proj_matrix, old_offset);
+	glm_mat4_mul(old_proj_matrix, old_ortho, old_proj_matrix);
+
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
+
+	//irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
+
+	//bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
+	bgfx_set_view_transform(0, old_view_matrix, old_proj_matrix);
+	
+	// ---
+
 	bgfx_set_view_rect(0, 0, 0, (uint16_t)rodeo_window_width_get(), (uint16_t)rodeo_window_height_get());
 
 	irodeo_gfx_render_buffer_transient_alloc();
