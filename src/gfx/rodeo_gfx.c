@@ -231,7 +231,42 @@ irodeo_print_matrix(rodeo_math_mat4_t mat)
 	);
 }
 
+// TODO delete this
 #include "math/irodeo_math.h"
+static inline
+rodeo_math_mat4_t
+irodeo_math_cglmMat4_to_rodeoMat4(mat4 in)
+{
+	return (rodeo_math_mat4_t){
+		.val = {
+			.m00 = in[0][0], .m01 = in[0][1], .m02 = in[0][2], .m03 = in[0][3],
+			.m10 = in[1][0], .m11 = in[1][1], .m12 = in[1][2], .m13 = in[1][3],
+			.m20 = in[2][0], .m21 = in[2][1], .m22 = in[2][2], .m23 = in[2][3],
+			.m30 = in[3][0], .m31 = in[3][1], .m32 = in[3][2], .m33 = in[3][3]
+		}
+	};
+}
+static inline
+mat4s
+irodeo_math_rodeoMat4_to_cglmMat4(rodeo_math_mat4_t in)
+{
+	return (mat4s){
+		.raw = {
+			{
+			in.val.m00, in.val.m01, in.val.m02, in.val.m03
+			},
+			{
+			in.val.m10, in.val.m11, in.val.m12, in.val.m13
+			},
+			{
+			in.val.m20, in.val.m21, in.val.m22, in.val.m23
+			},
+			{
+			in.val.m20, in.val.m21, in.val.m22, in.val.m23
+			},
+		}
+	};
+}
 
 	void
 rodeo_gfx_frame_begin(void)
@@ -258,15 +293,30 @@ rodeo_gfx_frame_begin(void)
 
 	//irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 	// --- 
+	//
+	rodeo_log(
+		rodeo_logLevel_error,
+		"Start of new frame"
+	);
 
 	// get identity
 	mat4 old_view_matrix;
 	glm_mat4_identity(old_view_matrix);
 	mat4 old_proj_matrix;
 	glm_mat4_identity(old_proj_matrix);
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"old identity"
+	);
+	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
 
 	irodeo_gfx_state.view_matrix = rodeo_math_mat4_identity();
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_identity();
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"new identity"
+	);
+	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 
 	// calculate orthographic
 	mat4 old_ortho;
@@ -279,6 +329,11 @@ rodeo_gfx_frame_begin(void)
 		100.0f,
 		old_ortho //old_proj_matrix
 	);
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"old ortho"
+	);
+	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_ortho));
 
 	rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic(
 		0,
@@ -288,6 +343,11 @@ rodeo_gfx_frame_begin(void)
 		-100.0f,
 		100.0f
 	);
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"new ortho"
+	);
+	irodeo_print_matrix(ortho);
 
 	// calculate translation
 	vec3 old_offset = {
@@ -303,11 +363,32 @@ rodeo_gfx_frame_begin(void)
 	};
 
 	// apply translation * orthographic
-	glm_translate(old_proj_matrix, old_offset);
 	glm_mat4_mul(old_proj_matrix, old_ortho, old_proj_matrix);
+	glm_translate(old_proj_matrix, old_offset);
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"old translation apply to identity"
+	);
+	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
 
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"new translation apply to identity"
+	);
+	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
+
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"old ortho apply to identity"
+	);
+	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"new ortho apply to identity"
+	);
+	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 
 	// push the result to bgfx
 	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
