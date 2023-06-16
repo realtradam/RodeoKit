@@ -11,9 +11,9 @@ rodeo_math_vec3_t
 irodeo_math_cglmVec3_to_rodeoVec3(vec3s in)
 {
 	return (rodeo_math_vec3_t){
-		.x = in.raw[0],
-		.y = in.raw[1],
-		.z = in.raw[2]
+		.raw[0] = in.raw[0],
+		.raw[1] = in.raw[1],
+		.raw[2] = in.raw[2]
 	};
 }
 
@@ -21,9 +21,9 @@ vec3s
 irodeo_math_rodeoVec3_to_cglmVec3(rodeo_math_vec3_t in)
 {
 	return (vec3s){
-		.raw[0] = in.x,
-		.raw[1] = in.y,
-		.raw[2] = in.z
+		.raw[0] = in.raw[0],
+		.raw[1] = in.raw[1],
+		.raw[2] = in.raw[2], 
 	};
 }
 

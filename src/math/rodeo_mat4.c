@@ -2,6 +2,7 @@
 // -- internal --
 // public
 #include "rodeo/math.h"
+#include "rodeo/log.h"
 // private
 #include "math/irodeo_math.h"
 
@@ -35,11 +36,49 @@ irodeo_math_rodeoMat4_to_cglmMat4(rodeo_math_mat4_t in)
 			in.val.m20, in.val.m21, in.val.m22, in.val.m23
 			},
 			{
-			in.val.m20, in.val.m21, in.val.m22, in.val.m23
+			in.val.m30, in.val.m31, in.val.m32, in.val.m33
 			},
 		}
 	};
 }
+
+void
+irodeo_print_matrix(rodeo_math_mat4_t mat)
+{
+	rodeo_log(
+		rodeo_logLevel_warning,
+		"%.05f, %.05f, %.05f, %.05f",
+		mat.raw[0][0],
+		mat.raw[0][1],
+		mat.raw[0][2],
+		mat.raw[0][3]
+	);
+	rodeo_log(
+		rodeo_logLevel_info,
+		"%.05f, %.05f, %.05f, %.05f",
+		mat.raw[1][0],
+		mat.raw[1][1],
+		mat.raw[1][2],
+		mat.raw[1][3]
+	);
+	rodeo_log(
+		rodeo_logLevel_info,
+		"%.05f, %.05f, %.05f, %.05f",
+		mat.raw[2][0],
+		mat.raw[2][1],
+		mat.raw[2][2],
+		mat.raw[2][3]
+	);
+	rodeo_log(
+		rodeo_logLevel_info,
+		"%.05f, %.05f, %.05f, %.05f",
+		mat.raw[3][0],
+		mat.raw[3][1],
+		mat.raw[3][2],
+		mat.raw[3][3]
+	);
+}
+
 
 rodeo_math_mat4_t
 rodeo_math_mat4_identity(void)

@@ -11,8 +11,8 @@ rodeo_math_vec2_t
 irodeo_math_cglmVec2_to_rodeoVec2(vec2s in)
 {
 	return (rodeo_math_vec2_t){
-		.x = in.raw[0],
-		.y = in.raw[1]
+		.raw[0] = in.raw[0],
+		.raw[1] = in.raw[1]
 	};
 }
 
@@ -20,8 +20,8 @@ vec2s
 irodeo_math_rodeoVec2_to_cglmVec2(rodeo_math_vec2_t in)
 {
 	return (vec2s){
-		.raw[0] = in.x,
-		.raw[1] = in.y
+		.raw[0] = in.raw[0],
+		.raw[1] = in.raw[1]
 	};
 }
 

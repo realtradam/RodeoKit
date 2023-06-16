@@ -45,7 +45,7 @@ struct
 irodeo_gfx_state_t;
 
 struct
-irodeo_gfx_texture_internal
+irodeo_gfx_texture_2d
 {
 	bgfx_texture_handle_t texture_bgfx;
 };

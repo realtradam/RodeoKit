@@ -38,26 +38,6 @@ rodeo_color_RGBA8_to_RGBAFloat(const rodeo_color_RGBA8_t color)
 	};
 }
 
-void
-rodeo_random_seed_set(uint64_t seed)
-{
-	irodeo_random_seed_set(stc64_new(seed));
-}
-
-double
-rodeo_random_double_get(void)
-{
-	stc64_t *seed = irodeo_random_seed_get();
-	return stc64_randf(seed);
-}
-
-uint64_t
-rodeo_random_uint64_get(void)
-{
-	stc64_t *seed = irodeo_random_seed_get();
-	return stc64_rand(seed);
-}
-
 // need to test this, might be wrong
 /*
 rodeo_vector2_t

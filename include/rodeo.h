@@ -9,17 +9,10 @@
 #include "rodeo/collision.h"
 #include "rodeo/gfx.h"
 #include "rodeo/window.h"
-
-// -- external --
-#include "stc/cstr.h"
+#include "rodeo/math.h"
 
 // -- system --
-#include <stdbool.h>
-#include <stdio.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include <string.h>
-#include <limits.h>
 
 /// --- Math ---
 
@@ -28,15 +21,6 @@ rodeo_color_RGBAFloat_to_RGBA8(const rodeo_color_RGBAFloat_t color);
 
 rodeo_color_RGBAFloat_t
 rodeo_color_RGBA8_to_RGBAFloat(const rodeo_color_RGBA8_t color);
-
-void
-rodeo_random_seed_set(uint64_t seed);
-
-double
-rodeo_random_double_get(void);
-
-uint64_t
-rodeo_random_uint64_get(void);
 
 /// --- Core ---
 
@@ -48,3 +32,18 @@ rodeo_mainLoop_run(
 void
 rodeo_debug_text_draw(uint16_t x, uint16_t y, const char *format, ...);
 
+// intialize all subsystems
+void
+rodeo_init(float width, float height, cstr window_name, uint32_t audio_channels);
+
+// deintialize all subsystems
+void
+rodeo_deinit(void);
+
+// macro to intialize/deinitialize all subsystems
+#define \
+mrodeo_do(width, height, window_name, audio_channels) \
+	mrodeo_defer_do( \
+		rodeo_init(width, height, window_name, audio_channels), \
+		rodeo_deinit() \
+	)

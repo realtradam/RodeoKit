@@ -17,7 +17,7 @@
 
 static irodeo_gfx_state_t irodeo_gfx_state = {0};
 
-	void
+void
 rodeo_gfx_init(float width, float height)
 {
 
@@ -137,7 +137,7 @@ rodeo_gfx_init(float width, float height)
 
 	//bgfx_texture_handle_t default_bgfx_texture = rodeo_texture_2d_create_default();
 
-	irodeo_gfx_state.default_texture.internal_texture = malloc(sizeof(irodeo_gfx_texture_internal_t));
+	irodeo_gfx_state.default_texture.data = malloc(sizeof(*irodeo_gfx_state.default_texture.data));
 
 	// used for binding textures to shader uniforms
 	irodeo_gfx_state.texture_uniforms[0] = bgfx_create_uniform("default_texture", BGFX_UNIFORM_TYPE_SAMPLER, 1);
@@ -150,7 +150,7 @@ rodeo_gfx_init(float width, float height)
 			0xff, 0xff, 0xff, 0xff,
 		};
 
-		irodeo_gfx_state.default_texture.internal_texture->texture_bgfx = 
+		irodeo_gfx_state.default_texture.data->texture_bgfx = 
 			bgfx_create_texture_2d(
 					1,
 					1,
@@ -166,7 +166,7 @@ rodeo_gfx_init(float width, float height)
 		irodeo_gfx_state.default_texture.width = 1;
 		irodeo_gfx_state.default_texture.height = 1;
 
-		irodeo_gfx_state.active_texture_p = &irodeo_gfx_state.default_texture.internal_texture->texture_bgfx;
+		irodeo_gfx_state.active_texture_p = &irodeo_gfx_state.default_texture.data->texture_bgfx;
 	}
 
 	SDL_SetWindowResizable(irodeo_window_get(), true);
@@ -179,96 +179,20 @@ rodeo_gfx_init(float width, float height)
 			BGFX_TEXTURE_FORMAT_COUNT
 			);
 
-	rodeo_random_seed_set(SDL_GetTicks64());
-
 	irodeo_gfx_state.frame_end = (uint32_t)SDL_GetPerformanceCounter();
 }
 
-	void
+void
 rodeo_gfx_deinit(void)
 {
 
-	free(irodeo_gfx_state.default_texture.internal_texture);
+	free(irodeo_gfx_state.default_texture.data);
 
 	bgfx_destroy_program(irodeo_gfx_state.program_shader);
 	bgfx_shutdown();
 }
 
 void
-irodeo_print_matrix(rodeo_math_mat4_t mat)
-{
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"%.05f, %.05f, %.05f, %.05f",
-		mat.raw[0][0],
-		mat.raw[0][1],
-		mat.raw[0][2],
-		mat.raw[0][3]
-	);
-	rodeo_log(
-		rodeo_logLevel_info,
-		"%.05f, %.05f, %.05f, %.05f",
-		mat.raw[1][0],
-		mat.raw[1][1],
-		mat.raw[1][2],
-		mat.raw[1][3]
-	);
-	rodeo_log(
-		rodeo_logLevel_info,
-		"%.05f, %.05f, %.05f, %.05f",
-		mat.raw[2][0],
-		mat.raw[2][1],
-		mat.raw[2][2],
-		mat.raw[2][3]
-	);
-	rodeo_log(
-		rodeo_logLevel_info,
-		"%.05f, %.05f, %.05f, %.05f",
-		mat.raw[3][0],
-		mat.raw[3][1],
-		mat.raw[3][2],
-		mat.raw[3][3]
-	);
-}
-
-// TODO delete this
-#include "math/irodeo_math.h"
-static inline
-rodeo_math_mat4_t
-irodeo_math_cglmMat4_to_rodeoMat4(mat4 in)
-{
-	return (rodeo_math_mat4_t){
-		.val = {
-			.m00 = in[0][0], .m01 = in[0][1], .m02 = in[0][2], .m03 = in[0][3],
-			.m10 = in[1][0], .m11 = in[1][1], .m12 = in[1][2], .m13 = in[1][3],
-			.m20 = in[2][0], .m21 = in[2][1], .m22 = in[2][2], .m23 = in[2][3],
-			.m30 = in[3][0], .m31 = in[3][1], .m32 = in[3][2], .m33 = in[3][3]
-		}
-	};
-}
-static inline
-mat4s
-irodeo_math_rodeoMat4_to_cglmMat4(rodeo_math_mat4_t in)
-{
-	return (mat4s){
-		.raw = {
-			{
-			in.val.m00, in.val.m01, in.val.m02, in.val.m03
-			},
-			{
-			in.val.m10, in.val.m11, in.val.m12, in.val.m13
-			},
-			{
-			in.val.m20, in.val.m21, in.val.m22, in.val.m23
-			},
-			{
-			in.val.m20, in.val.m21, in.val.m22, in.val.m23
-			},
-		}
-	};
-}
-
-	void
 rodeo_gfx_frame_begin(void)
 {
 
@@ -290,51 +214,11 @@ rodeo_gfx_frame_begin(void)
 		result_height *= (game_aspect) / window_aspect;
 	}
 
-
-	//irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
-	// --- 
-	//
-	rodeo_log(
-		rodeo_logLevel_error,
-		"Start of new frame"
-	);
-
 	// get identity
-	mat4 old_view_matrix;
-	glm_mat4_identity(old_view_matrix);
-	mat4 old_proj_matrix;
-	glm_mat4_identity(old_proj_matrix);
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"old identity"
-	);
-	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
-
 	irodeo_gfx_state.view_matrix = rodeo_math_mat4_identity();
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_identity();
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"new identity"
-	);
-	irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
 
 	// calculate orthographic
-	mat4 old_ortho;
-	glm_ortho_rh_zo(
-		0,
-		result_width,
-		result_height,
-		0,
-		-100.0f,
-		100.0f,
-		old_ortho //old_proj_matrix
-	);
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"old ortho"
-	);
-	irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_ortho));
-
 	rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic(
 		0,
 		result_width,
@@ -343,60 +227,20 @@ rodeo_gfx_frame_begin(void)
 		-100.0f,
 		100.0f
 	);
-	rodeo_log(
-		rodeo_logLevel_warning,
-		"new ortho"
-	);
-	irodeo_print_matrix(ortho);
 
 	// calculate translation
-	vec3 old_offset = {
-		1 - (1 * (target_width / result_width)), // x
-		-(1 - (1 * (target_height / result_height))), // y
-		0
-	};
-
 	rodeo_math_vec3_t offset = {
-		.x = 1 - (1 * (target_width / result_width)), // x
-		.y = -(1 - (1 * (target_height / result_height))), // y
-		.z = 0
+		.val.x = 1 - (1 * (target_width / result_width)), // x
+		.val.y = -(1 - (1 * (target_height / result_height))), // y
+		.val.z = 0
 	};
 
 	// apply translation * orthographic
-	glm_translate(old_proj_matrix, old_offset);
-		rodeo_log(
-			rodeo_logLevel_warning,
-			"old translation apply to identity"
-		);
-		irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
-
 	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
-		rodeo_log(
-			rodeo_logLevel_warning,
-			"new translation apply to identity"
-		);
-		irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
-	//irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
-	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, irodeo_math_cglmMat4_to_rodeoMat4(old_ortho));
-
-		rodeo_log(
-			rodeo_logLevel_warning,
-			"old ortho apply to identity"
-		);
-	glm_mat4_mul(old_proj_matrix, old_ortho, old_proj_matrix);
-		irodeo_print_matrix(irodeo_math_cglmMat4_to_rodeoMat4(old_proj_matrix));
-		rodeo_log(
-			rodeo_logLevel_warning,
-			"new ortho apply to identity"
-		);
-		irodeo_print_matrix(irodeo_gfx_state.proj_matrix);
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
 
 	// push the result to bgfx
 	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
-	//bgfx_set_view_transform(0, old_view_matrix, old_proj_matrix);
-	
-	// ---
-
 	bgfx_set_view_rect(0, 0, 0, (uint16_t)rodeo_window_width_get(), (uint16_t)rodeo_window_height_get());
 
 	irodeo_gfx_render_buffer_transient_alloc();
@@ -405,7 +249,7 @@ rodeo_gfx_frame_begin(void)
 	irodeo_gfx_state.frame_start = irodeo_gfx_state.frame_end;
 }
 
-	void
+void
 rodeo_gfx_frame_end(void)
 {
 	rodeo_gfx_renderer_flush();
@@ -426,19 +270,19 @@ rodeo_gfx_frame_end(void)
 #endif
 }
 
-	float
+float
 rodeo_gfx_width_get(void)
 {
 	return irodeo_gfx_state.target_width;
 }
 
-	float
+float
 rodeo_gfx_height_get(void)
 {
 	return irodeo_gfx_state.target_height;
 }
 
-	rodeo_rectangle_t
+rodeo_rectangle_t
 rodeo_gfx_letterbox_first_get(void)
 {
 	const float target_width = irodeo_gfx_state.target_width;
@@ -457,7 +301,7 @@ rodeo_gfx_letterbox_first_get(void)
 		result_height *= (game_aspect) / window_aspect;
 	}
 
-	rodeo_rectangle_t result = {0};
+rodeo_rectangle_t result = {0};
 
 	// while checking for float equality should generally never be done
 	// in this case it is ok because the case where they are exactly equal
@@ -476,10 +320,10 @@ rodeo_gfx_letterbox_first_get(void)
 	return result;
 }
 
-	rodeo_rectangle_t
+rodeo_rectangle_t
 rodeo_gfx_letterbox_second_get(void)
 {
-	rodeo_rectangle_t result = rodeo_gfx_letterbox_first_get();
+rodeo_rectangle_t result = rodeo_gfx_letterbox_first_get();
 	if(rodeo_gfx_width_get() != result.width)
 	{ // second box needs to be offset to the right
 		result.x += rodeo_gfx_width_get() + result.width;
@@ -491,13 +335,13 @@ rodeo_gfx_letterbox_second_get(void)
 	return result;
 }
 
-	float
+float
 rodeo_gfx_frame_time_get(void)
 {
 	return irodeo_gfx_state.frame_time; //(float)bgfx_get_stats()->cpuTimeFrame;
 }
 
-	float
+float
 rodeo_gfx_frame_perSecond_get(void)
 {
 	return 1.0f / (rodeo_gfx_frame_time_get() / 1000.0f);
@@ -506,7 +350,7 @@ rodeo_gfx_frame_perSecond_get(void)
 // measures how much time there is left in the remaining frame until
 // the frame target time is reached. If we surpassed the target time
 // then this will be negative
-	float
+float
 irodeo_gfx_frame_remaining_get(void)
 {
 #ifdef __EMSCRIPTEN__
@@ -523,7 +367,7 @@ irodeo_gfx_frame_remaining_get(void)
 
 // used internally at the end of every frame to fill for time
 // in order to reach the desired framerate
-	void
+void
 irodeo_gfx_frame_stall(void)
 {
 	// if no frame limit then run as fast as possible
@@ -547,14 +391,14 @@ irodeo_gfx_frame_stall(void)
 	}
 }
 
-	void
+void
 rodeo_gfx_renderer_flush(void)
 {
 	// set default texture
 	bgfx_set_texture(
 			0,
 			irodeo_gfx_state.texture_uniforms[0],
-			rodeo_gfx_texture_2d_default_get().internal_texture->texture_bgfx,
+			rodeo_gfx_texture_2d_default_get().data->texture_bgfx,
 			UINT32_MAX
 			);
 	if(irodeo_gfx_state.active_texture_p != NULL)
@@ -573,7 +417,7 @@ rodeo_gfx_renderer_flush(void)
 		bgfx_set_texture(
 				1,
 				irodeo_gfx_state.texture_uniforms[1],
-				rodeo_gfx_texture_2d_default_get().internal_texture->texture_bgfx,
+				rodeo_gfx_texture_2d_default_get().data->texture_bgfx,
 				UINT32_MAX
 				);
 	}
@@ -616,13 +460,13 @@ rodeo_gfx_renderer_flush(void)
 	irodeo_gfx_state.active_texture_p = NULL;
 }
 
-	rodeo_gfx_texture_2d_t
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_default_get(void)
 {
 	return irodeo_gfx_state.default_texture;
 }
 
-	rodeo_gfx_texture_2d_t
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_create_from_RGBA8(
 		const uint16_t width,
 		const uint16_t height,
@@ -630,9 +474,9 @@ rodeo_gfx_texture_2d_create_from_RGBA8(
 		)
 {
 	rodeo_gfx_texture_2d_t texture;
-	texture.internal_texture = malloc(sizeof(irodeo_gfx_texture_internal_t));
+	texture.data = malloc(sizeof(*texture.data));
 	bgfx_copy(memory, (uint32_t)width * (uint32_t)height * sizeof(uint8_t) * 4);
-	texture.internal_texture->texture_bgfx =
+	texture.data->texture_bgfx =
 		bgfx_create_texture_2d(
 				width,
 				height,
@@ -649,18 +493,18 @@ rodeo_gfx_texture_2d_create_from_RGBA8(
 	return texture;
 }
 
-	void
+void
 rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t texture)
 {
-	bgfx_destroy_texture(texture.internal_texture->texture_bgfx);
-	free(texture.internal_texture);
+	bgfx_destroy_texture(texture.data->texture_bgfx);
+	free(texture.data);
 }
 
-	void
+void
 rodeo_gfx_rectangle_draw(
-		const rodeo_rectangle_t rectangle,
-		const rodeo_color_RGBAFloat_t color
-		)
+	const rodeo_rectangle_t rectangle,
+	const rodeo_color_RGBAFloat_t color
+)
 {
 	rodeo_gfx_texture_2d_draw(
 			rectangle,
@@ -672,21 +516,21 @@ rodeo_gfx_rectangle_draw(
 
 void
 rodeo_gfx_texture_2d_draw(
-		// cant be NULL
-		const rodeo_rectangle_t destination,
-		// default: entire texture
-		const rodeo_rectangle_t source,
-		// default: white
-		const rodeo_color_RGBAFloat_t color,
-		// default: default texture
-		const rodeo_gfx_texture_2d_t texture
-		)
+	// cant be NULL
+	const rodeo_rectangle_t destination,
+	// default: entire texture
+	const rodeo_rectangle_t source,
+	// default: white
+	const rodeo_color_RGBAFloat_t color,
+	// default: default texture
+	const rodeo_gfx_texture_2d_t texture
+)
 {
 	// whether to use default or custom texture
 	float texture_uniform_slot = 0.0;
 
 	rodeo_rectangle_t source_applied;
-	if((source.height != 0 || source.width != 0) && texture.internal_texture != NULL)
+	if((source.height != 0 || source.width != 0) && texture.data != NULL)
 	{
 		source_applied = (rodeo_rectangle_t){
 			.x = source.x / (float)texture.width,
@@ -709,17 +553,17 @@ rodeo_gfx_texture_2d_draw(
 	// otherwise check what current texture is active
 	//	if none or the same: set it
 	//	if different: flush and then set it
-	if(texture.internal_texture != NULL)
+	if(texture.data != NULL)
 	{
 		if(irodeo_gfx_state.active_texture_p != NULL)
 		{
-			if(&texture.internal_texture->texture_bgfx != irodeo_gfx_state.active_texture_p)
+			if(&texture.data->texture_bgfx != irodeo_gfx_state.active_texture_p)
 			{
 				rodeo_gfx_renderer_flush();
 			}
 		}
 		texture_uniform_slot = 1.0;
-		irodeo_gfx_state.active_texture_p = &texture.internal_texture->texture_bgfx;
+		irodeo_gfx_state.active_texture_p = &texture.data->texture_bgfx;
 	}
 
 
@@ -802,7 +646,7 @@ rodeo_gfx_texture_2d_draw(
 	}
 }
 
-	rodeo_gfx_texture_2d_t
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_create_from_path(cstr path)
 {
 	// load image to surface
@@ -858,13 +702,13 @@ rodeo_gfx_texture_2d_create_from_path(cstr path)
 	return texture;
 }
 
-	uint64_t
+uint64_t
 rodeo_gfx_frame_count_get(void)
 {
 	return irodeo_gfx_state.frame_count;
 }
 
-	void
+void
 rodeo_gfx_frame_limit_set(uint32_t limit)
 {
 #ifdef __EMSCRIPTEN__
@@ -877,7 +721,7 @@ rodeo_gfx_frame_limit_set(uint32_t limit)
 #endif
 }
 
-	uint32_t
+uint32_t
 rodeo_gfx_frame_limit_get(void)
 {
 #ifdef __EMSCRIPTEN__
@@ -887,7 +731,7 @@ rodeo_gfx_frame_limit_get(void)
 #endif
 }
 
-	cstr
+cstr
 rodeo_gfx_renderer_name_get(void)
 {
 	return cstr_from(
@@ -895,7 +739,7 @@ rodeo_gfx_renderer_name_get(void)
 			);
 }
 
-	bgfx_shader_handle_t
+bgfx_shader_handle_t
 irodeo_gfx_shader_load(const cstr path)
 {
 	const char* path_cstr = cstr_str(&path);
@@ -949,7 +793,7 @@ irodeo_gfx_shader_load(const cstr path)
 	return shader;
 }
 
-	void
+void
 irodeo_gfx_render_buffer_transient_alloc(void)
 {
 	bgfx_alloc_transient_vertex_buffer(&irodeo_gfx_state.vertex_buffer_handle, mrodeo_vertex_size_max, &irodeo_gfx_state.vertex_layout);
