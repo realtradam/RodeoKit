@@ -687,6 +687,20 @@ rodeo_input_scene_deactivate(rodeo_input_scene_t scene)
 	cset_input_scene_erase(&istate.active_scenes, scene.data);
 }
 
+bool
+rodeo_input_scene_isActive(rodeo_input_scene_t scene)
+{
+	if(cset_input_scene_get(&istate.active_scenes, scene.data) == NULL)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+	
+}
+
 #define i_key int32_t
 #define i_val SDL_GameController*
 #define i_tag SDL_GameController
