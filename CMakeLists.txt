@@ -14,6 +14,11 @@ add_library(${PROJECT_NAME}
     "src/collision/rodeo_collision.c"
 	"src/gfx/rodeo_gfx.c"
 	"src/window/rodeo_window.c"
+	"src/math/rodeo_math.c"
+	"src/math/rodeo_vec2.c"
+	"src/math/rodeo_vec3.c"
+	"src/math/rodeo_mat4.c"
+	"src/math/rodeo_rng.c"
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)

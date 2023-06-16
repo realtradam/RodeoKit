@@ -14,8 +14,8 @@ static irodeo_window_state_t irodeo_window_state = {0};
 
 void
 rodeo_window_init(
-	uint16_t width,
-	uint16_t height,
+	uint32_t width,
+	uint32_t height,
 	cstr title
 )
 {
@@ -58,8 +58,8 @@ rodeo_window_init(
 			cstr_str(&title),
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
-			width,
-			height,
+			(int32_t)width,
+			(int32_t)height,
 			SDL_WINDOW_SHOWN //| SDL_WINDOW_RESIZABLE
 			);
 	if(irodeo_window_state.window == NULL)

@@ -13,8 +13,8 @@
 
 void
 rodeo_window_init(
-	uint16_t screen_height,
-	uint16_t screen_width,
+	uint32_t screen_height,
+	uint32_t screen_width,
 	cstr title
 );
 

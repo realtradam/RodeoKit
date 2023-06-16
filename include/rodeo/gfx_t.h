@@ -6,12 +6,12 @@
 // -- system --
 #include <inttypes.h>
 
-typedef struct irodeo_gfx_texture_internal irodeo_gfx_texture_internal_t;
+typedef struct irodeo_gfx_texture_2d irodeo_gfx_texture_2d_t;
 
 typedef
 struct
 {
-	irodeo_gfx_texture_internal_t *internal_texture;
+	irodeo_gfx_texture_2d_t *data;
 	uint32_t width;
 	uint32_t height;
 }

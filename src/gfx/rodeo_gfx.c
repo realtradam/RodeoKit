@@ -12,14 +12,12 @@
 
 // -- external --
 #include "bgfx/c99/bgfx.h"
-#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "cglm/cglm.h"
 #include "SDL_image.h"
 #include "SDL.h" // used for timing, need to replace in this file with BGFX at some point
 
 static irodeo_gfx_state_t irodeo_gfx_state = {0};
 
-	void
+void
 rodeo_gfx_init(float width, float height)
 {
 
@@ -139,7 +137,7 @@ rodeo_gfx_init(float width, float height)
 
 	//bgfx_texture_handle_t default_bgfx_texture = rodeo_texture_2d_create_default();
 
-	irodeo_gfx_state.default_texture.internal_texture = malloc(sizeof(irodeo_gfx_texture_internal_t));
+	irodeo_gfx_state.default_texture.data = malloc(sizeof(*irodeo_gfx_state.default_texture.data));
 
 	// used for binding textures to shader uniforms
 	irodeo_gfx_state.texture_uniforms[0] = bgfx_create_uniform("default_texture", BGFX_UNIFORM_TYPE_SAMPLER, 1);
@@ -152,7 +150,7 @@ rodeo_gfx_init(float width, float height)
 			0xff, 0xff, 0xff, 0xff,
 		};
 
-		irodeo_gfx_state.default_texture.internal_texture->texture_bgfx = 
+		irodeo_gfx_state.default_texture.data->texture_bgfx = 
 			bgfx_create_texture_2d(
 					1,
 					1,
@@ -168,7 +166,7 @@ rodeo_gfx_init(float width, float height)
 		irodeo_gfx_state.default_texture.width = 1;
 		irodeo_gfx_state.default_texture.height = 1;
 
-		irodeo_gfx_state.active_texture_p = &irodeo_gfx_state.default_texture.internal_texture->texture_bgfx;
+		irodeo_gfx_state.active_texture_p = &irodeo_gfx_state.default_texture.data->texture_bgfx;
 	}
 
 	SDL_SetWindowResizable(irodeo_window_get(), true);
@@ -181,33 +179,22 @@ rodeo_gfx_init(float width, float height)
 			BGFX_TEXTURE_FORMAT_COUNT
 			);
 
-	rodeo_random_seed_set(SDL_GetTicks64());
-
 	irodeo_gfx_state.frame_end = (uint32_t)SDL_GetPerformanceCounter();
 }
 
-	void
+void
 rodeo_gfx_deinit(void)
 {
 
-	free(irodeo_gfx_state.default_texture.internal_texture);
+	free(irodeo_gfx_state.default_texture.data);
 
 	bgfx_destroy_program(irodeo_gfx_state.program_shader);
 	bgfx_shutdown();
 }
 
-	void
+void
 rodeo_gfx_frame_begin(void)
 {
-	//vec3 eye = {0.0f, 0.0f, -35.0f};
-	//vec3 center = {0.0f, 0.0f, 0.0f};
-	//vec3 up = {0, 1, 0};
-
-	//glm_lookat(eye, center, up, view);
-
-	glm_mat4_identity(irodeo_gfx_state.view_matrix);
-
-	//glm_perspective(glm_rad(60.f), 640.f / 480.f, 0.1f, 100.0f, proj);
 
 	// scale the game screen to fit window size with letterbox
 	//	what size we declare the game screen to be within
@@ -227,29 +214,33 @@ rodeo_gfx_frame_begin(void)
 		result_height *= (game_aspect) / window_aspect;
 	}
 
-	// make the game screen centered in the window.
-	//	"2" is 1 full screen width, therefore we multiply
-	//	the target and result ratio by 1 for it to be a
-	//	half of the screen size
-	vec3 offset = {
-		1 - (1 * (target_width / result_width)), // x
-		-(1 - (1 * (target_height / result_height))), // y
-		0
+	// get identity
+	irodeo_gfx_state.view_matrix = rodeo_math_mat4_identity();
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_identity();
+
+	// calculate orthographic
+	rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic(
+		0,
+		result_width,
+		result_height,
+		0,
+		-100.0f,
+		100.0f
+	);
+
+	// calculate translation
+	rodeo_math_vec3_t offset = {
+		.val.x = 1 - (1 * (target_width / result_width)), // x
+		.val.y = -(1 - (1 * (target_height / result_height))), // y
+		.val.z = 0
 	};
 
-	glm_ortho_rh_zo( 
-			0,
-			result_width,
-			result_height,
-			0,
-			-100.0f,
-			100.0f,
-			irodeo_gfx_state.proj_matrix
-			);
+	// apply translation * orthographic
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.proj_matrix, offset);
+	irodeo_gfx_state.proj_matrix = rodeo_math_mat4_multiply(irodeo_gfx_state.proj_matrix, ortho);
 
-	glm_translated(irodeo_gfx_state.proj_matrix, offset);
-
-	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix, irodeo_gfx_state.proj_matrix);
+	// push the result to bgfx
+	bgfx_set_view_transform(0, irodeo_gfx_state.view_matrix.raw, irodeo_gfx_state.proj_matrix.raw);
 	bgfx_set_view_rect(0, 0, 0, (uint16_t)rodeo_window_width_get(), (uint16_t)rodeo_window_height_get());
 
 	irodeo_gfx_render_buffer_transient_alloc();
@@ -258,7 +249,7 @@ rodeo_gfx_frame_begin(void)
 	irodeo_gfx_state.frame_start = irodeo_gfx_state.frame_end;
 }
 
-	void
+void
 rodeo_gfx_frame_end(void)
 {
 	rodeo_gfx_renderer_flush();
@@ -279,19 +270,19 @@ rodeo_gfx_frame_end(void)
 #endif
 }
 
-	float
+float
 rodeo_gfx_width_get(void)
 {
 	return irodeo_gfx_state.target_width;
 }
 
-	float
+float
 rodeo_gfx_height_get(void)
 {
 	return irodeo_gfx_state.target_height;
 }
 
-	rodeo_rectangle_t
+rodeo_rectangle_t
 rodeo_gfx_letterbox_first_get(void)
 {
 	const float target_width = irodeo_gfx_state.target_width;
@@ -310,7 +301,7 @@ rodeo_gfx_letterbox_first_get(void)
 		result_height *= (game_aspect) / window_aspect;
 	}
 
-	rodeo_rectangle_t result = {0};
+rodeo_rectangle_t result = {0};
 
 	// while checking for float equality should generally never be done
 	// in this case it is ok because the case where they are exactly equal
@@ -329,10 +320,10 @@ rodeo_gfx_letterbox_first_get(void)
 	return result;
 }
 
-	rodeo_rectangle_t
+rodeo_rectangle_t
 rodeo_gfx_letterbox_second_get(void)
 {
-	rodeo_rectangle_t result = rodeo_gfx_letterbox_first_get();
+rodeo_rectangle_t result = rodeo_gfx_letterbox_first_get();
 	if(rodeo_gfx_width_get() != result.width)
 	{ // second box needs to be offset to the right
 		result.x += rodeo_gfx_width_get() + result.width;
@@ -344,13 +335,13 @@ rodeo_gfx_letterbox_second_get(void)
 	return result;
 }
 
-	float
+float
 rodeo_gfx_frame_time_get(void)
 {
 	return irodeo_gfx_state.frame_time; //(float)bgfx_get_stats()->cpuTimeFrame;
 }
 
-	float
+float
 rodeo_gfx_frame_perSecond_get(void)
 {
 	return 1.0f / (rodeo_gfx_frame_time_get() / 1000.0f);
@@ -359,7 +350,7 @@ rodeo_gfx_frame_perSecond_get(void)
 // measures how much time there is left in the remaining frame until
 // the frame target time is reached. If we surpassed the target time
 // then this will be negative
-	float
+float
 irodeo_gfx_frame_remaining_get(void)
 {
 #ifdef __EMSCRIPTEN__
@@ -376,7 +367,7 @@ irodeo_gfx_frame_remaining_get(void)
 
 // used internally at the end of every frame to fill for time
 // in order to reach the desired framerate
-	void
+void
 irodeo_gfx_frame_stall(void)
 {
 	// if no frame limit then run as fast as possible
@@ -400,14 +391,14 @@ irodeo_gfx_frame_stall(void)
 	}
 }
 
-	void
+void
 rodeo_gfx_renderer_flush(void)
 {
 	// set default texture
 	bgfx_set_texture(
 			0,
 			irodeo_gfx_state.texture_uniforms[0],
-			rodeo_gfx_texture_2d_default_get().internal_texture->texture_bgfx,
+			rodeo_gfx_texture_2d_default_get().data->texture_bgfx,
 			UINT32_MAX
 			);
 	if(irodeo_gfx_state.active_texture_p != NULL)
@@ -426,7 +417,7 @@ rodeo_gfx_renderer_flush(void)
 		bgfx_set_texture(
 				1,
 				irodeo_gfx_state.texture_uniforms[1],
-				rodeo_gfx_texture_2d_default_get().internal_texture->texture_bgfx,
+				rodeo_gfx_texture_2d_default_get().data->texture_bgfx,
 				UINT32_MAX
 				);
 	}
@@ -469,13 +460,13 @@ rodeo_gfx_renderer_flush(void)
 	irodeo_gfx_state.active_texture_p = NULL;
 }
 
-	rodeo_gfx_texture_2d_t
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_default_get(void)
 {
 	return irodeo_gfx_state.default_texture;
 }
 
-	rodeo_gfx_texture_2d_t
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_create_from_RGBA8(
 		const uint16_t width,
 		const uint16_t height,
@@ -483,9 +474,9 @@ rodeo_gfx_texture_2d_create_from_RGBA8(
 		)
 {
 	rodeo_gfx_texture_2d_t texture;
-	texture.internal_texture = malloc(sizeof(irodeo_gfx_texture_internal_t));
+	texture.data = malloc(sizeof(*texture.data));
 	bgfx_copy(memory, (uint32_t)width * (uint32_t)height * sizeof(uint8_t) * 4);
-	texture.internal_texture->texture_bgfx =
+	texture.data->texture_bgfx =
 		bgfx_create_texture_2d(
 				width,
 				height,
@@ -502,18 +493,18 @@ rodeo_gfx_texture_2d_create_from_RGBA8(
 	return texture;
 }
 
-	void
+void
 rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t texture)
 {
-	bgfx_destroy_texture(texture.internal_texture->texture_bgfx);
-	free(texture.internal_texture);
+	bgfx_destroy_texture(texture.data->texture_bgfx);
+	free(texture.data);
 }
 
-	void
+void
 rodeo_gfx_rectangle_draw(
-		const rodeo_rectangle_t rectangle,
-		const rodeo_color_RGBAFloat_t color
-		)
+	const rodeo_rectangle_t rectangle,
+	const rodeo_color_RGBAFloat_t color
+)
 {
 	rodeo_gfx_texture_2d_draw(
 			rectangle,
@@ -525,21 +516,21 @@ rodeo_gfx_rectangle_draw(
 
 void
 rodeo_gfx_texture_2d_draw(
-		// cant be NULL
-		const rodeo_rectangle_t destination,
-		// default: entire texture
-		const rodeo_rectangle_t source,
-		// default: white
-		const rodeo_color_RGBAFloat_t color,
-		// default: default texture
-		const rodeo_gfx_texture_2d_t texture
-		)
+	// cant be NULL
+	const rodeo_rectangle_t destination,
+	// default: entire texture
+	const rodeo_rectangle_t source,
+	// default: white
+	const rodeo_color_RGBAFloat_t color,
+	// default: default texture
+	const rodeo_gfx_texture_2d_t texture
+)
 {
 	// whether to use default or custom texture
 	float texture_uniform_slot = 0.0;
 
 	rodeo_rectangle_t source_applied;
-	if((source.height != 0 || source.width != 0) && texture.internal_texture != NULL)
+	if((source.height != 0 || source.width != 0) && texture.data != NULL)
 	{
 		source_applied = (rodeo_rectangle_t){
 			.x = source.x / (float)texture.width,
@@ -562,17 +553,17 @@ rodeo_gfx_texture_2d_draw(
 	// otherwise check what current texture is active
 	//	if none or the same: set it
 	//	if different: flush and then set it
-	if(texture.internal_texture != NULL)
+	if(texture.data != NULL)
 	{
 		if(irodeo_gfx_state.active_texture_p != NULL)
 		{
-			if(&texture.internal_texture->texture_bgfx != irodeo_gfx_state.active_texture_p)
+			if(&texture.data->texture_bgfx != irodeo_gfx_state.active_texture_p)
 			{
 				rodeo_gfx_renderer_flush();
 			}
 		}
 		texture_uniform_slot = 1.0;
-		irodeo_gfx_state.active_texture_p = &texture.internal_texture->texture_bgfx;
+		irodeo_gfx_state.active_texture_p = &texture.data->texture_bgfx;
 	}
 
 
@@ -655,7 +646,7 @@ rodeo_gfx_texture_2d_draw(
 	}
 }
 
-	rodeo_gfx_texture_2d_t
+rodeo_gfx_texture_2d_t
 rodeo_gfx_texture_2d_create_from_path(cstr path)
 {
 	// load image to surface
@@ -711,13 +702,13 @@ rodeo_gfx_texture_2d_create_from_path(cstr path)
 	return texture;
 }
 
-	uint64_t
+uint64_t
 rodeo_gfx_frame_count_get(void)
 {
 	return irodeo_gfx_state.frame_count;
 }
 
-	void
+void
 rodeo_gfx_frame_limit_set(uint32_t limit)
 {
 #ifdef __EMSCRIPTEN__
@@ -730,7 +721,7 @@ rodeo_gfx_frame_limit_set(uint32_t limit)
 #endif
 }
 
-	uint32_t
+uint32_t
 rodeo_gfx_frame_limit_get(void)
 {
 #ifdef __EMSCRIPTEN__
@@ -740,7 +731,7 @@ rodeo_gfx_frame_limit_get(void)
 #endif
 }
 
-	cstr
+cstr
 rodeo_gfx_renderer_name_get(void)
 {
 	return cstr_from(
@@ -748,7 +739,7 @@ rodeo_gfx_renderer_name_get(void)
 			);
 }
 
-	bgfx_shader_handle_t
+bgfx_shader_handle_t
 irodeo_gfx_shader_load(const cstr path)
 {
 	const char* path_cstr = cstr_str(&path);
@@ -802,7 +793,7 @@ irodeo_gfx_shader_load(const cstr path)
 	return shader;
 }
 
-	void
+void
 irodeo_gfx_render_buffer_transient_alloc(void)
 {
 	bgfx_alloc_transient_vertex_buffer(&irodeo_gfx_state.vertex_buffer_handle, mrodeo_vertex_size_max, &irodeo_gfx_state.vertex_layout);

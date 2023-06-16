@@ -3,11 +3,10 @@
 // -- internal --
 // public
 #include "rodeo/gfx_t.h"
+#include "rodeo/math.h"
 
 // -- external --
 #include "bgfx/c99/bgfx.h"
-#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "cglm/mat4.h"
 
 typedef uint16_t irodeo_index_type_t;
 
@@ -33,8 +32,10 @@ struct
 	bgfx_uniform_handle_t texture_uniforms[2];
 	float target_width;
 	float target_height;
-	mat4 view_matrix;
-	mat4 proj_matrix;
+	//mat4 view_matrix;
+	//mat4 proj_matrix;
+	rodeo_math_mat4_t view_matrix;
+	rodeo_math_mat4_t proj_matrix;
 	uint64_t frame_count;
 	uint32_t frame_limit;
 	uint32_t frame_start;
@@ -44,7 +45,7 @@ struct
 irodeo_gfx_state_t;
 
 struct
-irodeo_gfx_texture_internal
+irodeo_gfx_texture_2d
 {
 	bgfx_texture_handle_t texture_bgfx;
 };
