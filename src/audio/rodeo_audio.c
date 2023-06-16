@@ -19,17 +19,42 @@
 void
 rodeo_audio_init(uint32_t channels)
 {
-	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Initializing SDL Audio..."
+	);
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
 	{
 		rodeo_log(
 			rodeo_logLevel_error,
 			"Failed to initialize SDL Audio. SDL_Error: %s",
 			SDL_GetError()
 		);
+		exit(EXIT_FAILURE);
+	}
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Success initializing SDL Audio"
+	);
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Initializing SDL Mixer..."
+	);
+	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Failed to initialize SDL Mixer. SDL_Error: %s",
+			SDL_GetError()
+		);
 	}
 	else
 	{
-			Mix_AllocateChannels((int32_t)channels);
+		rodeo_log(
+			rodeo_logLevel_info,
+			"Success initializing SDL Mixer"
+		);
+		Mix_AllocateChannels((int32_t)channels);
 		/*
 		irodeo_audio_channelPool_num = 1; //num_sound_pools;
 		irodeo_audio_channelPool_size = channels; //size_sound_pools;

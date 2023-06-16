@@ -105,6 +105,35 @@ irodeo_input_screen_to_world_dy(float input)
 	}
 }
 
+void
+rodeo_input_init(void)
+{
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Initializing SDL Events and Game Controller..."
+	);
+	if(SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) < 0)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Failed to initialize SDL Events or Game Controller. SDL_Error: %s",
+			SDL_GetError()
+		);
+		exit(EXIT_FAILURE);
+	}
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Success initializing SDL Events and Game Controller"
+	);
+}
+
+void
+rodeo_input_deinit(void)
+{
+	// everything is deinited with SDL window already because of the way SDL works.
+	// need to investigate this more...
+}
+
 bool
 rodeo_input_poll(void)
 {
@@ -689,3 +718,10 @@ irodeo_input_controller_unregister(int32_t id)
 	SDL_GameControllerClose(controller);
 	cmap_SDL_GameController_erase(&icontrollers, id);
 }
+
+#define mrodeo_input_do() \
+	mrodeo_defer_do( \
+		rodeo_input_init(), \
+		rodeo_input_deinit() \
+	)
+

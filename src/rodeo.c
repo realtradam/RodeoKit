@@ -19,6 +19,7 @@ void
 rodeo_init(float width, float height, cstr window_name, uint32_t audio_channels)
 {
 	rodeo_window_init((uint32_t)width, (uint32_t)height, window_name);
+	rodeo_input_init();
 	rodeo_math_rng_init();
 	rodeo_audio_init(audio_channels);
 	rodeo_gfx_init(width, height);
@@ -28,10 +29,11 @@ rodeo_init(float width, float height, cstr window_name, uint32_t audio_channels)
 void
 rodeo_deinit(void)
 {
-	rodeo_window_deinit();
-	rodeo_math_rng_deinit();
-	rodeo_audio_deinit();
 	rodeo_gfx_deinit();
+	rodeo_audio_deinit();
+	rodeo_math_rng_deinit();
+	rodeo_input_deinit();
+	rodeo_window_deinit();
 }
 
 void

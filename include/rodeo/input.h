@@ -3,6 +3,12 @@
 // public
 #include "rodeo/input_t.h"
 
+void
+rodeo_input_init(void);
+
+void
+rodeo_input_deinit(void);
+
 bool
 rodeo_input_poll(void);
 

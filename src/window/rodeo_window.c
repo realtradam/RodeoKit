@@ -26,29 +26,22 @@ rodeo_window_init(
 
 	rodeo_log(
 		rodeo_logLevel_info,
-		"Initializing SDL..."
+		"Initializing SDL Video..."
 	);
 
+	if(SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
 	{
-		uint32_t init_flags_sdl = 0;
-		init_flags_sdl = init_flags_sdl | SDL_INIT_VIDEO;
-		init_flags_sdl = init_flags_sdl | SDL_INIT_AUDIO;
-		init_flags_sdl = init_flags_sdl | SDL_INIT_GAMECONTROLLER;
-	
-		if(SDL_Init(init_flags_sdl) < 0)
-		{
-			rodeo_log(
-				rodeo_logLevel_error,
-				"Failed to initialize SDL. SDL_Error: %s",
-				SDL_GetError()
-			);
-			exit(EXIT_FAILURE);
-		}
 		rodeo_log(
-			rodeo_logLevel_info,
-			"Success initializing SDL"
+			rodeo_logLevel_error,
+			"Failed to initialize SDL Video. SDL_Error: %s",
+			SDL_GetError()
 		);
+		exit(EXIT_FAILURE);
 	}
+	rodeo_log(
+		rodeo_logLevel_info,
+		"Success initializing SDL Video"
+	);
 
 	rodeo_log(
 		rodeo_logLevel_info,
