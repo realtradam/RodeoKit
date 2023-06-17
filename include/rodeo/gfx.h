@@ -60,6 +60,15 @@ rodeo_gfx_rectangle_draw(
 );
 
 void
+rodeo_gfx_vertex_add(rodeo_gfx_vertex_t vertex);
+
+void
+rodeo_gfx_index_add(rodeo_gfx_index_t index);
+
+rodeo_gfx_index_t
+rodeo_gfx_index_count(void);
+
+void
 rodeo_gfx_texture_2d_draw(
 	const rodeo_rectangle_t destination,
 	const rodeo_rectangle_t source,
@@ -90,6 +99,19 @@ rodeo_gfx_frame_limit_set(uint32_t limit);
 
 uint32_t
 rodeo_gfx_frame_limit_get(void);
+
+void
+rodeo_gfx_scissor_begin(rodeo_rectangle_t rectangle);
+
+void
+rodeo_gfx_scissor_end(void);
+
+#define \
+mrodeo_gfx_scissor_do(rectangle) \
+	mrodeo_defer_do( \
+		rodeo_gfx_scissor_begin(rectangle), \
+		rodeo_gfx_scissor_end() \
+	)
 
 #define									\
 mrodeo_gfx_do(							\

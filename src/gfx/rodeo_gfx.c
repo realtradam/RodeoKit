@@ -15,6 +15,9 @@
 #include "SDL_image.h"
 #include "SDL.h" // used for timing, need to replace in this file with BGFX at some point
 
+// -- system --
+#include <math.h>
+
 static irodeo_gfx_state_t irodeo_gfx_state = {0};
 
 void
@@ -26,6 +29,7 @@ rodeo_gfx_init(float width, float height)
 #endif
 	irodeo_gfx_state.target_width = width;
 	irodeo_gfx_state.target_height = height;
+	irodeo_gfx_dimensions_extra_update();
 
 	bgfx_platform_data_t pd = {0};
 	memset(&pd, 0, sizeof(bgfx_platform_data_t));
@@ -195,24 +199,7 @@ rodeo_gfx_deinit(void)
 void
 rodeo_gfx_frame_begin(void)
 {
-
-	// scale the game screen to fit window size with letterbox
-	//	what size we declare the game screen to be within
-	const float target_width = irodeo_gfx_state.target_width;
-	const float target_height = irodeo_gfx_state.target_height;
-	//	what the calculated size is to fit in the window
-	float result_width = target_width;
-	float result_height = target_height;
-	const float game_aspect = target_width / target_height;
-	const float window_aspect = (float)rodeo_window_width_get()/(float)rodeo_window_height_get();
-	if(window_aspect > game_aspect)
-	{
-		result_width /= (game_aspect) / window_aspect;
-	}
-	else
-	{
-		result_height *= (game_aspect) / window_aspect;
-	}
+	irodeo_gfx_dimensions_extra_t dm = irodeo_gfx_dimensions_extra_get();
 
 	// get identity
 	irodeo_gfx_state.view_matrix = rodeo_math_mat4_identity();
@@ -221,8 +208,8 @@ rodeo_gfx_frame_begin(void)
 	// calculate orthographic
 	rodeo_math_mat4_t ortho = rodeo_math_mat4_orthographic(
 		0,
-		result_width,
-		result_height,
+		dm.result_width,
+		dm.result_height,
 		0,
 		-100.0f,
 		100.0f
@@ -230,8 +217,8 @@ rodeo_gfx_frame_begin(void)
 
 	// calculate translation
 	rodeo_math_vec3_t offset = {
-		.val.x = 1 - (1 * (target_width / result_width)), // x
-		.val.y = -(1 - (1 * (target_height / result_height))), // y
+		.val.x = 1 - (1 * (dm.target_width / dm.result_width)), // x
+		.val.y = -(1 - (1 * (dm.target_height / dm.result_height))), // y
 		.val.z = 0
 	};
 
@@ -282,38 +269,65 @@ rodeo_gfx_height_get(void)
 	return irodeo_gfx_state.target_height;
 }
 
-rodeo_rectangle_t
-rodeo_gfx_letterbox_first_get(void)
+void
+irodeo_gfx_dimensions_extra_update(void)
 {
-	const float target_width = irodeo_gfx_state.target_width;
-	const float target_height = irodeo_gfx_state.target_height;
+	// scale the game screen to fit window size with letterbox
+	//	what size we declare the game screen to be within
+	const float target_width = rodeo_gfx_width_get();
+	const float target_height = rodeo_gfx_height_get();
 	//	what the calculated size is to fit in the window
 	float result_width = target_width;
 	float result_height = target_height;
 	const float game_aspect = target_width / target_height;
 	const float window_aspect = (float)rodeo_window_width_get()/(float)rodeo_window_height_get();
+	float scale = 1.0f;
 	if(window_aspect > game_aspect)
 	{
 		result_width /= (game_aspect) / window_aspect;
+		scale = (float)rodeo_window_height_get() / target_height;
 	}
 	else if(window_aspect < game_aspect)
 	{
 		result_height *= (game_aspect) / window_aspect;
+		scale = (float)rodeo_window_width_get() / target_width;
 	}
+	irodeo_gfx_dimensions_extra_t result = {
+		.target_width = target_width,
+		.target_height = target_height,
+		.result_width = result_width,
+		.result_height = result_height,
+		.game_aspect = game_aspect,
+		.window_aspect = window_aspect,
+		.scale = scale
+	};
+	irodeo_gfx_state.dimensions_extra = result;
+}
 
-rodeo_rectangle_t result = {0};
+irodeo_gfx_dimensions_extra_t
+irodeo_gfx_dimensions_extra_get(void)
+{
+	return irodeo_gfx_state.dimensions_extra;
+}
+
+rodeo_rectangle_t
+rodeo_gfx_letterbox_first_get(void)
+{
+	irodeo_gfx_dimensions_extra_t dm = irodeo_gfx_dimensions_extra_get();
+
+	rodeo_rectangle_t result = {0};
 
 	// while checking for float equality should generally never be done
 	// in this case it is ok because the case where they are exactly equal
 	// causes the letterboxes to fill the screen instead of not existing.
 	// this is avoided this by leaving the rectangle size at 0 in that case.
-	if(window_aspect != game_aspect)
+	if(dm.window_aspect != dm.game_aspect)
 	{
 		result = (rodeo_rectangle_t){
-			.x = (-result_width + target_width) / 2,
-				.y = (-result_height + target_height) / 2,
-				.width = (result_width*( (window_aspect > game_aspect) ? 0 : 1 )) + ((result_width - target_width) / 2),
-				.height = (result_height*( (window_aspect < game_aspect) ? 0 : 1 )) + ((result_height - target_height) / 2),
+			.x = (-dm.result_width + dm.target_width) / 2,
+				.y = (-dm.result_height + dm.target_height) / 2,
+				.width = (dm.result_width * ((dm.window_aspect > dm.game_aspect) ? 0 : 1 )) + ((dm.result_width - dm.target_width) / 2),
+				.height = (dm.result_height * ((dm.window_aspect < dm.game_aspect) ? 0 : 1 )) + ((dm.result_height - dm.target_height) / 2),
 		};
 	}
 
@@ -515,6 +529,40 @@ rodeo_gfx_rectangle_draw(
 }
 
 void
+rodeo_gfx_vertex_add(rodeo_gfx_vertex_t vertex)
+{
+	if(irodeo_gfx_state.vertex_size >= mrodeo_vertex_size_max)
+	{
+		rodeo_gfx_renderer_flush();
+	}
+	irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] = vertex;
+	irodeo_gfx_state.vertex_size += 1;
+}
+
+void
+rodeo_gfx_index_add(rodeo_gfx_index_t index)
+{
+	if(irodeo_gfx_state.index_size >= mrodeo_index_size_max)
+	{
+		rodeo_log(
+			rodeo_logLevel_error,
+			"Exceeding the max number of indices for this draw call, index discarded"
+		);
+	}
+	else
+	{
+		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = index;
+		irodeo_gfx_state.vertex_size += 1;
+	}
+}
+
+rodeo_gfx_index_t
+rodeo_gfx_index_count(void)
+{
+	return irodeo_gfx_state.index_count;
+}
+
+void
 rodeo_gfx_texture_2d_draw(
 	// cant be NULL
 	const rodeo_rectangle_t destination,
@@ -534,18 +582,18 @@ rodeo_gfx_texture_2d_draw(
 	{
 		source_applied = (rodeo_rectangle_t){
 			.x = source.x / (float)texture.width,
-				.y = source.y / (float)texture.height,
-				.width = source.width / (float)texture.width,
-				.height = source.height / (float)texture.height,
+			.y = source.y / (float)texture.height,
+			.width = source.width / (float)texture.width,
+			.height = source.height / (float)texture.height,
 		};
 	}
 	else
 	{
 		source_applied = (rodeo_rectangle_t){
 			.x = 0.0f,
-				.y = 0.0f,
-				.width = 1.0f,
-				.height = 1.0f,
+			.y = 0.0f,
+			.width = 1.0f,
+			.height = 1.0f,
 		};
 	}
 
@@ -618,7 +666,7 @@ rodeo_gfx_texture_2d_draw(
 			};
 		irodeo_gfx_state.vertex_size += 1;
 
-		irodeo_index_type_t indices[] =
+		rodeo_gfx_index_t indices[] =
 		{
 			0, 1, 3,
 			1, 2, 3
@@ -735,8 +783,52 @@ cstr
 rodeo_gfx_renderer_name_get(void)
 {
 	return cstr_from(
-			bgfx_get_renderer_name(bgfx_get_renderer_type())
-			);
+		bgfx_get_renderer_name(bgfx_get_renderer_type())
+	);
+}
+
+void
+rodeo_gfx_scissor_begin(rodeo_rectangle_t rectangle)
+{
+	rodeo_gfx_renderer_flush();
+
+	irodeo_gfx_dimensions_extra_t dm = irodeo_gfx_dimensions_extra_get();
+
+	rectangle.x *= dm.scale;
+	rectangle.y *= dm.scale;
+	rectangle.width *= dm.scale;
+	rectangle.height *= dm.scale;
+
+	if(dm.window_aspect > dm.game_aspect)
+	{
+		rectangle.x += rodeo_gfx_letterbox_first_get().width * dm.scale;
+	}
+	else if(dm.window_aspect < dm.game_aspect)
+	{
+		rectangle.y += rodeo_gfx_letterbox_first_get().height * dm.scale;
+	}
+
+	// BGFX only accepts unsigned so it will break if the x/y values are outside the top
+	// or left boundaries
+	if(rectangle.x < 0)
+	{
+		rectangle.width += rectangle.x;
+		rectangle.x = 0;
+	}
+	if(rectangle.y < 0)
+	{
+		rectangle.height += rectangle.y;
+		rectangle.y = 0;
+	}
+
+	bgfx_set_scissor((uint16_t)roundf(rectangle.x), (uint16_t)roundf(rectangle.y), (uint16_t)roundf(rectangle.width), (uint16_t)roundf(rectangle.height));
+}
+
+void
+rodeo_gfx_scissor_end(void)
+{
+	rodeo_gfx_renderer_flush();
+	bgfx_set_scissor_cached(UINT16_MAX);
 }
 
 bgfx_shader_handle_t
@@ -799,6 +891,6 @@ irodeo_gfx_render_buffer_transient_alloc(void)
 	bgfx_alloc_transient_vertex_buffer(&irodeo_gfx_state.vertex_buffer_handle, mrodeo_vertex_size_max, &irodeo_gfx_state.vertex_layout);
 	bgfx_alloc_transient_index_buffer(&irodeo_gfx_state.index_buffer_handle, mrodeo_index_size_max, false);
 	irodeo_gfx_state.batched_vertices = (rodeo_gfx_vertex_t*)irodeo_gfx_state.vertex_buffer_handle.data;
-	irodeo_gfx_state.batched_indices = (irodeo_index_type_t*)irodeo_gfx_state.index_buffer_handle.data;
+	irodeo_gfx_state.batched_indices = (rodeo_gfx_index_t*)irodeo_gfx_state.index_buffer_handle.data;
 }
 

@@ -9,6 +9,7 @@
 #include "rodeo_internal.h"
 #include "input/irodeo_input.h"
 #include "window/irodeo_window.h"
+#include "gfx/irodeo_gfx.h"
 
 // -- external --
 #include "SDL.h"
@@ -160,6 +161,7 @@ rodeo_input_poll(void)
 						BGFX_TEXTURE_FORMAT_COUNT
 					);
 					irodeo_window_dimensions_update();
+					irodeo_gfx_dimensions_extra_update();
 					}
 				}
 				// keep going, to check for inputs

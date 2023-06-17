@@ -8,7 +8,19 @@
 // -- external --
 #include "bgfx/c99/bgfx.h"
 
-typedef uint16_t irodeo_index_type_t;
+typedef
+struct
+{
+	float target_width;
+	float target_height;
+	//	what the calculated size is to fit in the window
+	float result_width;
+	float result_height;
+	float game_aspect;
+	float window_aspect;
+	float scale;
+}
+irodeo_gfx_dimensions_extra_t;
 
 typedef
 struct
@@ -19,12 +31,13 @@ struct
 	bgfx_transient_vertex_buffer_t vertex_buffer_handle;
 	bgfx_transient_index_buffer_t index_buffer_handle;
 	rodeo_gfx_vertex_t *batched_vertices;
-	irodeo_index_type_t *batched_indices;
-	irodeo_index_type_t vertex_size;
-	irodeo_index_type_t index_count;
-	irodeo_index_type_t index_size;
-	//irodeo_index_type_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
+	rodeo_gfx_index_t *batched_indices;
+	rodeo_gfx_index_t vertex_size;
+	rodeo_gfx_index_t index_count;
+	rodeo_gfx_index_t index_size;
+	//irodeo_gfx_index_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
 	rodeo_gfx_texture_2d_t default_texture;
+	bgfx_encoder_t *encoder;
 	bgfx_texture_handle_t *active_texture_p;
 	bgfx_shader_handle_t vertex_shader;
 	bgfx_shader_handle_t fragment_shader;
@@ -41,6 +54,7 @@ struct
 	uint32_t frame_start;
 	uint32_t frame_end;
 	float frame_time;
+	irodeo_gfx_dimensions_extra_t dimensions_extra;
 }
 irodeo_gfx_state_t;
 

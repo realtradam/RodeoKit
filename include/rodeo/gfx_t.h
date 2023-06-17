@@ -64,3 +64,6 @@ struct
 	float texture_id;
 }
 rodeo_gfx_vertex_t;
+
+typedef uint16_t rodeo_gfx_index_t;
+
