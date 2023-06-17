@@ -23,7 +23,6 @@ static irodeo_gfx_state_t irodeo_gfx_state = {0};
 void
 rodeo_gfx_init(float width, float height)
 {
-
 #ifdef __EMSCRIPTEN__
 	bgfx_render_frame(-1);
 #endif
@@ -170,7 +169,7 @@ rodeo_gfx_init(float width, float height)
 		irodeo_gfx_state.default_texture.width = 1;
 		irodeo_gfx_state.default_texture.height = 1;
 
-		irodeo_gfx_state.active_texture_p = &irodeo_gfx_state.default_texture.data->texture_bgfx;
+		irodeo_gfx_state.active_texture = &irodeo_gfx_state.default_texture.data->texture_bgfx;
 	}
 
 	SDL_SetWindowResizable(irodeo_window_get(), true);
@@ -189,7 +188,6 @@ rodeo_gfx_init(float width, float height)
 void
 rodeo_gfx_deinit(void)
 {
-
 	free(irodeo_gfx_state.default_texture.data);
 
 	bgfx_destroy_program(irodeo_gfx_state.program_shader);
@@ -415,13 +413,13 @@ rodeo_gfx_renderer_flush(void)
 			rodeo_gfx_texture_2d_default_get().data->texture_bgfx,
 			UINT32_MAX
 			);
-	if(irodeo_gfx_state.active_texture_p != NULL)
+	if(irodeo_gfx_state.active_texture != NULL)
 	{
 		// set dynamic texture
 		bgfx_set_texture(
 				1,
 				irodeo_gfx_state.texture_uniforms[1],
-				*irodeo_gfx_state.active_texture_p,
+				*irodeo_gfx_state.active_texture,
 				UINT32_MAX
 				);
 	}
@@ -471,7 +469,7 @@ rodeo_gfx_renderer_flush(void)
 		// allocate new buffers
 		irodeo_gfx_render_buffer_transient_alloc();
 	}
-	irodeo_gfx_state.active_texture_p = NULL;
+	irodeo_gfx_state.active_texture = NULL;
 }
 
 rodeo_gfx_texture_2d_t
@@ -539,6 +537,18 @@ rodeo_gfx_vertex_add(rodeo_gfx_vertex_t vertex)
 	irodeo_gfx_state.vertex_size += 1;
 }
 
+uint16_t
+rodeo_gfx_vertex_size(void)
+{
+	return irodeo_gfx_state.vertex_size;
+}
+
+uint16_t
+rodeo_gfx_vertex_maxSize(void)
+{
+	return mrodeo_vertex_size_max;
+}
+
 void
 rodeo_gfx_index_add(rodeo_gfx_index_t index)
 {
@@ -552,25 +562,47 @@ rodeo_gfx_index_add(rodeo_gfx_index_t index)
 	else
 	{
 		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = index;
-		irodeo_gfx_state.vertex_size += 1;
+		irodeo_gfx_state.index_size += 1;
 	}
 }
 
 rodeo_gfx_index_t
-rodeo_gfx_index_count(void)
+rodeo_gfx_index_count_get(void)
 {
 	return irodeo_gfx_state.index_count;
 }
 
 void
+rodeo_gfx_index_count_increment(uint16_t amount)
+{
+	irodeo_gfx_state.index_count += amount;
+}
+
+uint16_t
+rodeo_gfx_index_maxSize(void)
+{
+	return mrodeo_index_size_max;
+}
+
+void
+rodeo_gfx_texture_set(rodeo_gfx_texture_2d_t texture)
+{
+
+	if(&texture.data->texture_bgfx != irodeo_gfx_state.active_texture)
+	{
+		if(irodeo_gfx_state.active_texture != NULL)
+		{
+			rodeo_gfx_renderer_flush();
+		}
+		irodeo_gfx_state.active_texture = &texture.data->texture_bgfx;
+	}
+}
+
+void
 rodeo_gfx_texture_2d_draw(
-	// cant be NULL
 	const rodeo_rectangle_t destination,
-	// default: entire texture
 	const rodeo_rectangle_t source,
-	// default: white
 	const rodeo_color_RGBAFloat_t color,
-	// default: default texture
 	const rodeo_gfx_texture_2d_t texture
 )
 {
@@ -603,95 +635,77 @@ rodeo_gfx_texture_2d_draw(
 	//	if different: flush and then set it
 	if(texture.data != NULL)
 	{
-		if(irodeo_gfx_state.active_texture_p != NULL)
-		{
-			if(&texture.data->texture_bgfx != irodeo_gfx_state.active_texture_p)
-			{
-				rodeo_gfx_renderer_flush();
-			}
-		}
+		rodeo_gfx_texture_set(texture);
 		texture_uniform_slot = 1.0;
-		irodeo_gfx_state.active_texture_p = &texture.data->texture_bgfx;
 	}
 
 
-	if(irodeo_gfx_state.vertex_size < mrodeo_vertex_size_max)
-	{
-		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
-			(rodeo_gfx_vertex_t)
-			{ 
-				.x = destination.width + destination.x,
-				.y = destination.height + destination.y,
-				//.z = 0.0f, 
-				.color = color,
-				.texture_id = texture_uniform_slot,
-				.texture_x = source_applied.width + source_applied.x,
-				.texture_y = source_applied.height + source_applied.y,
-			};
-		irodeo_gfx_state.vertex_size += 1;
-		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
-			(rodeo_gfx_vertex_t)
-			{ 
-				.x = destination.width + destination.x,
-				.y = destination.y,
-				//.z = 0.0f, 
-				.color = color,
-				.texture_id = texture_uniform_slot,
-				.texture_x = source_applied.width + source_applied.x,
-				.texture_y = source_applied.y,
-			};
-		irodeo_gfx_state.vertex_size += 1;
-		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
-			(rodeo_gfx_vertex_t)
-			{ 
-				.x = destination.x,
-				.y = destination.y,
-				//.z = 0.0f, 
-				.color = color,
-				.texture_id = texture_uniform_slot,
-				.texture_x = source_applied.x,
-				.texture_y = source_applied.y,
-			};
-		irodeo_gfx_state.vertex_size += 1;
-		irodeo_gfx_state.batched_vertices[irodeo_gfx_state.vertex_size] =
-			(rodeo_gfx_vertex_t)
-			{ 
-				.x = destination.x,
-				.y = destination.height + destination.y,
-				//.z = 0.0f, 
-				.color = color,
-				.texture_id = texture_uniform_slot,
-				.texture_x = source_applied.x,
-				.texture_y = source_applied.height + source_applied.y,
-			};
-		irodeo_gfx_state.vertex_size += 1;
-
-		rodeo_gfx_index_t indices[] =
-		{
-			0, 1, 3,
-			1, 2, 3
-				//2, 1, 0,
-				//2, 3, 1
-		};
-		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = irodeo_gfx_state.index_count + indices[0];
-		irodeo_gfx_state.index_size += 1;
-		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = irodeo_gfx_state.index_count + indices[1];
-		irodeo_gfx_state.index_size += 1;
-		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = irodeo_gfx_state.index_count + indices[2];
-		irodeo_gfx_state.index_size += 1;
-		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = irodeo_gfx_state.index_count + indices[3];
-		irodeo_gfx_state.index_size += 1;
-		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = irodeo_gfx_state.index_count + indices[4];
-		irodeo_gfx_state.index_size += 1;
-		irodeo_gfx_state.batched_indices[irodeo_gfx_state.index_size] = irodeo_gfx_state.index_count + indices[5];
-		irodeo_gfx_state.index_size += 1;
-		irodeo_gfx_state.index_count += 4;
-	}
-
-	if(irodeo_gfx_state.vertex_size >= mrodeo_vertex_size_max)
+	if(irodeo_gfx_state.vertex_size + 4 > mrodeo_vertex_size_max)
 	{
 		rodeo_gfx_renderer_flush();
 	}
+	rodeo_gfx_vertex_add(
+		(rodeo_gfx_vertex_t)
+		{ 
+			.x = destination.width + destination.x,
+			.y = destination.height + destination.y,
+			//.z = 0.0f, 
+			.color = color,
+			.texture_id = texture_uniform_slot,
+			.texture_x = source_applied.width + source_applied.x,
+			.texture_y = source_applied.height + source_applied.y,
+		}
+	);
+
+	rodeo_gfx_vertex_add(
+		(rodeo_gfx_vertex_t)
+		{ 
+			.x = destination.width + destination.x,
+			.y = destination.y,
+			//.z = 0.0f, 
+			.color = color,
+			.texture_id = texture_uniform_slot,
+			.texture_x = source_applied.width + source_applied.x,
+			.texture_y = source_applied.y,
+		}
+	);
+	rodeo_gfx_vertex_add(
+		(rodeo_gfx_vertex_t)
+		{ 
+			.x = destination.x,
+			.y = destination.y,
+			//.z = 0.0f, 
+			.color = color,
+			.texture_id = texture_uniform_slot,
+			.texture_x = source_applied.x,
+			.texture_y = source_applied.y,
+		}
+	);
+	rodeo_gfx_vertex_add(
+		(rodeo_gfx_vertex_t)
+		{ 
+		.x = destination.x,
+		.y = destination.height + destination.y,
+		//.z = 0.0f, 
+		.color = color,
+		.texture_id = texture_uniform_slot,
+		.texture_x = source_applied.x,
+		.texture_y = source_applied.height + source_applied.y,
+		}
+	);
+
+	rodeo_gfx_index_t indices[] =
+	{
+		0, 1, 3,
+		1, 2, 3
+			//2, 1, 0,
+			//2, 3, 1
+	};
+	for(int8_t i = 0; i < (uint8_t)(sizeof(indices) / sizeof(indices[0])); ++i)
+	{
+		rodeo_gfx_index_add(indices[i] + rodeo_gfx_index_count_get());
+	}
+	rodeo_gfx_index_count_increment(4);
 }
 
 rodeo_gfx_texture_2d_t

@@ -154,7 +154,6 @@ rodeo_input_poll(void)
 					{
 					int32_t width = event.window.data1;
 					int32_t height = event.window.data2;
-					//SDL_GetWindowSize(irodeo_window_get(), &width, &height);
 					bgfx_reset((uint32_t)width, (uint32_t)height,
 						//BGFX_RESET_MSAA_X16 | BGFX_RESET_MAXANISOTROPY,
 						BGFX_RESET_VSYNC,

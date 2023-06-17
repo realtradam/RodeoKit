@@ -62,11 +62,23 @@ rodeo_gfx_rectangle_draw(
 void
 rodeo_gfx_vertex_add(rodeo_gfx_vertex_t vertex);
 
+uint16_t
+rodeo_gfx_vertex_size(void);
+
+uint16_t
+rodeo_gfx_vertex_maxSize(void);
+
 void
 rodeo_gfx_index_add(rodeo_gfx_index_t index);
 
 rodeo_gfx_index_t
-rodeo_gfx_index_count(void);
+rodeo_gfx_index_count_get(void);
+
+void
+rodeo_gfx_index_count_increment(uint16_t amount);
+
+uint16_t
+rodeo_gfx_index_maxSize(void);
 
 void
 rodeo_gfx_texture_2d_draw(

@@ -38,7 +38,7 @@ struct
 	//irodeo_gfx_index_t batched_indices[(mrodeo_vertex_size_max / 4) * 6];
 	rodeo_gfx_texture_2d_t default_texture;
 	bgfx_encoder_t *encoder;
-	bgfx_texture_handle_t *active_texture_p;
+	bgfx_texture_handle_t *active_texture;
 	bgfx_shader_handle_t vertex_shader;
 	bgfx_shader_handle_t fragment_shader;
 	bgfx_program_handle_t program_shader;
