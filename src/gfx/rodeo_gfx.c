@@ -515,12 +515,14 @@ rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t texture)
 void
 rodeo_gfx_rectangle_draw(
 	const rodeo_rectangle_t rectangle,
+	const float turns,
 	const rodeo_color_RGBAFloat_t color
 )
 {
 	rodeo_gfx_texture_2d_draw(
 			rectangle,
 			(rodeo_rectangle_t){ 0, 0, (float)rodeo_gfx_texture_2d_default_get().width, (float)rodeo_gfx_texture_2d_default_get().height },
+			turns,
 			color,
 			rodeo_gfx_texture_2d_default_get()
 			);
@@ -602,6 +604,7 @@ void
 rodeo_gfx_texture_2d_draw(
 	const rodeo_rectangle_t destination,
 	const rodeo_rectangle_t source,
+	const float turns,
 	const rodeo_color_RGBAFloat_t color,
 	const rodeo_gfx_texture_2d_t texture
 )
@@ -629,10 +632,6 @@ rodeo_gfx_texture_2d_draw(
 		};
 	}
 
-	// if not using texture: use default instead
-	// otherwise check what current texture is active
-	//	if none or the same: set it
-	//	if different: flush and then set it
 	if(texture.data != NULL)
 	{
 		rodeo_gfx_texture_set(texture);
@@ -644,11 +643,56 @@ rodeo_gfx_texture_2d_draw(
 	{
 		rodeo_gfx_renderer_flush();
 	}
+
+	rodeo_math_vec2_t vertex_pos[4];
+
+	if(turns == 0.0f)
+	{
+		vertex_pos[0] = (rodeo_math_vec2_t){
+			.val.x = destination.width + destination.x,
+			.val.y = destination.height + destination.y
+		};
+		vertex_pos[1] = (rodeo_math_vec2_t){
+			.val.x = destination.width + destination.x,
+			.val.y = destination.y
+		};
+		vertex_pos[2] = (rodeo_math_vec2_t){
+			.val.x = destination.x,
+			.val.y = destination.y
+		};
+		vertex_pos[3] = (rodeo_math_vec2_t){
+			.val.x = destination.x,
+			.val.y = destination.height + destination.y
+		};
+	}
+	else
+	{
+		float sin_rotation = sinf(rodeo_math_turns_to_radians(turns));
+		float cos_rotation = cosf(rodeo_math_turns_to_radians(turns));
+
+		vertex_pos[0] = (rodeo_math_vec2_t){
+			.val.x = -(destination.height * sin_rotation) + (destination.width * cos_rotation) + destination.x,
+			.val.y = (destination.height * cos_rotation) + (destination.width * sin_rotation) + destination.y
+		};
+		vertex_pos[1] = (rodeo_math_vec2_t){
+			.val.x = -(destination.width * cos_rotation) + destination.x,
+			.val.y = (destination.width * sin_rotation) + destination.y
+		};
+		vertex_pos[2] = (rodeo_math_vec2_t){
+			.val.x = destination.x,
+			.val.y = destination.y
+		};
+		vertex_pos[3] = (rodeo_math_vec2_t){
+			.val.x = -(destination.height * sin_rotation) + destination.x,
+			.val.y = (destination.height * cos_rotation) + destination.y
+		};
+	}
+
 	rodeo_gfx_vertex_add(
 		(rodeo_gfx_vertex_t)
 		{ 
-			.x = destination.width + destination.x,
-			.y = destination.height + destination.y,
+			.x = vertex_pos[0].val.x,
+			.y = vertex_pos[0].val.y,
 			//.z = 0.0f, 
 			.color = color,
 			.texture_id = texture_uniform_slot,
@@ -656,12 +700,11 @@ rodeo_gfx_texture_2d_draw(
 			.texture_y = source_applied.height + source_applied.y,
 		}
 	);
-
 	rodeo_gfx_vertex_add(
 		(rodeo_gfx_vertex_t)
 		{ 
-			.x = destination.width + destination.x,
-			.y = destination.y,
+			.x = vertex_pos[1].val.x,
+			.y = vertex_pos[1].val.y,
 			//.z = 0.0f, 
 			.color = color,
 			.texture_id = texture_uniform_slot,
@@ -672,8 +715,8 @@ rodeo_gfx_texture_2d_draw(
 	rodeo_gfx_vertex_add(
 		(rodeo_gfx_vertex_t)
 		{ 
-			.x = destination.x,
-			.y = destination.y,
+			.x = vertex_pos[2].val.x,
+			.y = vertex_pos[2].val.y,
 			//.z = 0.0f, 
 			.color = color,
 			.texture_id = texture_uniform_slot,
@@ -684,13 +727,13 @@ rodeo_gfx_texture_2d_draw(
 	rodeo_gfx_vertex_add(
 		(rodeo_gfx_vertex_t)
 		{ 
-		.x = destination.x,
-		.y = destination.height + destination.y,
-		//.z = 0.0f, 
-		.color = color,
-		.texture_id = texture_uniform_slot,
-		.texture_x = source_applied.x,
-		.texture_y = source_applied.height + source_applied.y,
+			.x = vertex_pos[3].val.x,
+			.y = vertex_pos[3].val.y,
+			//.z = 0.0f, 
+			.color = color,
+			.texture_id = texture_uniform_slot,
+			.texture_x = source_applied.x,
+			.texture_y = source_applied.height + source_applied.y,
 		}
 	);
 
