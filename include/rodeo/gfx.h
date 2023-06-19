@@ -3,6 +3,7 @@
 // -- internal --
 // public
 #include "rodeo/gfx_t.h"
+#include "rodeo/math/vec2_t.h"
 
 // -- external --
 #include "stc/cstr.h"
@@ -56,6 +57,7 @@ rodeo_gfx_texture_2d_destroy(rodeo_gfx_texture_2d_t texture);
 void
 rodeo_gfx_rectangle_draw(
 	const rodeo_rectangle_t rectangle,
+	const float turns,
 	const rodeo_color_RGBAFloat_t color
 );
 
@@ -84,6 +86,8 @@ void
 rodeo_gfx_texture_2d_draw(
 	const rodeo_rectangle_t destination,
 	const rodeo_rectangle_t source,
+	const float turns,
+	const rodeo_math_vec2_t origin,
 	const rodeo_color_RGBAFloat_t color,
 	const rodeo_gfx_texture_2d_t texture
 );
