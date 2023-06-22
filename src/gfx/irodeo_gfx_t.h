@@ -3,7 +3,7 @@
 // -- internal --
 // public
 #include "rodeo/gfx_t.h"
-#include "rodeo/math.h"
+#include "rodeo/math_t.h"
 
 // -- external --
 #include "bgfx/c99/bgfx.h"
@@ -21,6 +21,10 @@ struct
 	float scale;
 }
 irodeo_gfx_dimensions_extra_t;
+
+#define i_type stc_gfx_matrix_stack
+#define i_val rodeo_math_mat4_t
+#include <stc/cstack.h>
 
 typedef
 struct
@@ -55,6 +59,8 @@ struct
 	uint32_t frame_end;
 	float frame_time;
 	irodeo_gfx_dimensions_extra_t dimensions_extra;
+	rodeo_math_mat4_t matrix_stack_top;
+	stc_gfx_matrix_stack matrix_stack;
 }
 irodeo_gfx_state_t;
 

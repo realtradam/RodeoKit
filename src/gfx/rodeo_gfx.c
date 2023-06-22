@@ -182,12 +182,16 @@ rodeo_gfx_init(float width, float height)
 			BGFX_TEXTURE_FORMAT_COUNT
 			);
 
+	irodeo_gfx_matrix_init();
+
 	irodeo_gfx_state.frame_end = (uint32_t)SDL_GetPerformanceCounter();
 }
 
 void
 rodeo_gfx_deinit(void)
 {
+	irodeo_gfx_matrix_deinit();
+
 	free(irodeo_gfx_state.default_texture.data);
 
 	bgfx_destroy_program(irodeo_gfx_state.program_shader);
@@ -456,7 +460,14 @@ rodeo_gfx_renderer_flush(void)
 		//bgfx_set_dynamic_index_buffer(irodeo_gfx_state.index_buffer_handle, 0, irodeo_gfx_state.index_size);
 		//const bgfx_memory_t* ibm = bgfx_copy(irodeo_gfx_state.batched_indices, sizeof(uint16_t) * irodeo_gfx_state.index_size);
 		//bgfx_update_dynamic_index_buffer(irodeo_gfx_state.index_buffer_handle, 0, ibm);
-
+		
+		// apply matrices
+		//rodeo_math_mat4_t result_matrix = rodeo_math_mat4_multiply(
+		//	irodeo_gfx_state.proj_matrix,
+		//	irodeo_gfx_state.matrix_stack_top
+		//);
+		//bgfx_set_transform(&result_matrix.raw, 1);
+		bgfx_set_transform(&irodeo_gfx_state.matrix_stack_top, 1);
 
 		// submit vertices & batches
 		bgfx_submit(0, irodeo_gfx_state.program_shader, 0, BGFX_DISCARD_NONE);
@@ -919,6 +930,73 @@ rodeo_gfx_scissor_end(void)
 {
 	rodeo_gfx_renderer_flush();
 	bgfx_set_scissor_cached(UINT16_MAX);
+}
+
+// matrix design: by default start with first one being identity and pushed
+// popping past the first one resets it to idenity
+
+void
+irodeo_gfx_matrix_init(void)
+{
+	irodeo_gfx_state.matrix_stack = stc_gfx_matrix_stack_with_capacity(32);
+	irodeo_gfx_state.matrix_stack_top = rodeo_math_mat4_identity();
+	stc_gfx_matrix_stack_push(&irodeo_gfx_state.matrix_stack, rodeo_gfx_matrix_get());
+
+}
+
+void
+irodeo_gfx_matrix_deinit(void)
+{
+	stc_gfx_matrix_stack_drop(&irodeo_gfx_state.matrix_stack);
+}
+
+void
+rodeo_gfx_matrix_set(rodeo_math_mat4_t matrix)
+{
+	rodeo_gfx_renderer_flush();
+	//*stc_gfx_matrix_stack_end(&irodeo_gfx_state.matrix_stack).ref = matrix;
+	irodeo_gfx_state.matrix_stack_top = matrix;
+}
+
+rodeo_math_mat4_t
+rodeo_gfx_matrix_get(void)
+{
+		//return *stc_gfx_matrix_stack_top(&irodeo_gfx_state.matrix_stack);
+		return irodeo_gfx_state.matrix_stack_top;
+}
+
+void
+rodeo_gfx_matrix_push(void)
+{
+	stc_gfx_matrix_stack_push(
+		&irodeo_gfx_state.matrix_stack,
+		rodeo_gfx_matrix_get()
+	);
+}
+
+void
+rodeo_gfx_matrix_pop(void)
+{
+	// submit to render
+	rodeo_gfx_renderer_flush();
+	irodeo_gfx_state.matrix_stack_top = *stc_gfx_matrix_stack_top(&irodeo_gfx_state.matrix_stack);
+	if(stc_gfx_matrix_stack_size(&irodeo_gfx_state.matrix_stack) > 0)
+	{
+		stc_gfx_matrix_stack_pop(&irodeo_gfx_state.matrix_stack);
+		//stc_gfx_matrix_stack_push(&irodeo_gfx_state.matrix_stack, rodeo_math_mat4_identity());
+	}
+}
+
+uint32_t
+rodeo_gfx_matrix_size(void)
+{
+	return (uint32_t)stc_gfx_matrix_stack_size(&irodeo_gfx_state.matrix_stack);
+}
+
+uint32_t
+rodeo_gfx_matrix_capacity(void)
+{
+	return (uint32_t)stc_gfx_matrix_stack_capacity(&irodeo_gfx_state.matrix_stack);
 }
 
 bgfx_shader_handle_t

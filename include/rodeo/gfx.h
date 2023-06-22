@@ -4,6 +4,7 @@
 // public
 #include "rodeo/gfx_t.h"
 #include "rodeo/math/vec2_t.h"
+#include "rodeo/math/mat4_t.h"
 
 // -- external --
 #include "stc/cstr.h"
@@ -121,6 +122,30 @@ rodeo_gfx_scissor_begin(rodeo_rectangle_t rectangle);
 
 void
 rodeo_gfx_scissor_end(void);
+
+void
+irodeo_gfx_matrix_init(void);
+
+void
+irodeo_gfx_matrix_deinit(void);
+
+void
+rodeo_gfx_matrix_set(rodeo_math_mat4_t matrix);
+
+rodeo_math_mat4_t
+rodeo_gfx_matrix_get(void);
+
+void
+rodeo_gfx_matrix_push(void);
+
+void
+rodeo_gfx_matrix_pop(void);
+
+uint32_t
+rodeo_gfx_matrix_size(void);
+
+uint32_t
+rodeo_gfx_matrix_capacity(void);
 
 #define \
 mrodeo_gfx_scissor_do(rectangle) \
