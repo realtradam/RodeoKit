@@ -1,10 +1,14 @@
 -I./
 -I../include
 -I../external/SDL/include
+-I../external/SDL_image
+-I../external/SDL_mixer/include
 -I../external/bgfx/include
 -I../external/bx/include
 -I../external/cglm/include
 -I../external/STC/include
+-I../external/RmlUi/Include
+-DSDL_VIDEO_DRIVER_X11=ON
 -Wall
 -Wextra
 -Wpedantic
@@ -19,3 +23,4 @@
 -Wnested-externs
 -Wmissing-include-dirs
 -std=c99
+

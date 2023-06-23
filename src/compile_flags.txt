@@ -7,6 +7,7 @@
 -I../external/bx/include
 -I../external/cglm/include
 -I../external/STC/include
+-I../external/RmlUi/Include
 -DSDL_VIDEO_DRIVER_X11=ON
 -Wall
 -Wextra
@@ -21,5 +22,4 @@
 -Wredundant-decls
 -Wnested-externs
 -Wmissing-include-dirs
--std=c99
 

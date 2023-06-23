@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME}
 	"src/math/rodeo_vec3.c"
 	"src/math/rodeo_mat4.c"
 	"src/math/rodeo_rng.c"
+	"src/rmlui/rodeo_rmlui.cpp"
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)
