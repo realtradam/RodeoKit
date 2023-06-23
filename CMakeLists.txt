@@ -22,7 +22,7 @@ add_library(${PROJECT_NAME}
 )
 
 set_property(TARGET RodeoKit PROPERTY C_STANDARD 99)
-set_property(TARGET RodeoKit PROPERTY CXX_STANDARD 11)
+set_property(TARGET RodeoKit PROPERTY CXX_STANDARD 14)
 
 # pull all git submodules recursively
 find_package(Git QUIET)
@@ -46,6 +46,7 @@ if(DEFINED EMSCRIPTEN)
 	option(CGLM_SHARED "Shared build" OFF)
 	option(CGLM_STATIC "Static build" ON)
 	add_subdirectory(external/cglm)
+	add_subdirectory(external/RmlUi)
 	  
 	ExternalProject_Add(project_bgfx 
 		#BUILD_IN_SOURCE true # this just doesn't work
@@ -90,6 +91,7 @@ if(DEFINED EMSCRIPTEN)
 		PRIVATE bimg
 		PRIVATE bgfx
 		PRIVATE bx
+		PRIVATE RmlCore
 		)
 	target_compile_options(${PROJECT_NAME}
 		PUBLIC "-fno-exceptions"
@@ -103,6 +105,8 @@ elseif(DEFINED UNIX AND NOT DEFINED APPLE)
 	option(CGLM_SHARED "Shared build" OFF)
 	option(CGLM_STATIC "Static build" ON)
 	add_subdirectory(external/cglm)
+	add_definitions(-DRMLUI_STATIC_LIB)
+	add_subdirectory(external/RmlUi)
 
 	add_subdirectory(external/SDL)
 	add_subdirectory(external/SDL_image)
@@ -158,6 +162,7 @@ endif()
 		PRIVATE external/SDL_image
 		PRIVATE external/SDL_mixer
 		PRIVATE external/bgfx
+		PRIVATE external/RmlUi
 		)
 	target_link_libraries(${PROJECT_NAME}
 		#PRIVATE SDL2::SDL2-static # static lib
@@ -167,6 +172,7 @@ endif()
 		PRIVATE SDL2_mixer
 		PRIVATE cglm
 		PRIVATE bgfx
+		PRIVATE RmlCore
 		)
 endif()
 
@@ -174,6 +180,7 @@ target_include_directories(${PROJECT_NAME}
 	PRIVATE external/bgfx/include
 	PRIVATE external/bx/include
 	PRIVATE external/cglm/include
+	PRIVATE external/RmlUi/Include
 	PRIVATE src
 	PUBLIC include
 )
