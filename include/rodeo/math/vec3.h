@@ -13,7 +13,7 @@ rodeo_math_vec3_one(void);
 float
 rodeo_math_vec3_dot(rodeo_math_vec3_t a, rodeo_math_vec3_t b);
 
-float
+rodeo_math_vec3_t
 rodeo_math_vec3_cross(rodeo_math_vec3_t a, rodeo_math_vec3_t b);
 
 rodeo_math_vec3_t

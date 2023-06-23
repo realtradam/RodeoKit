@@ -50,7 +50,7 @@ rodeo_math_vec2_dot(rodeo_math_vec2_t a, rodeo_math_vec2_t b)
 float
 rodeo_math_vec2_cross(rodeo_math_vec2_t a, rodeo_math_vec2_t b)
 {
-	return glms_vec2_dot(
+	return glms_vec2_cross(
 		irodeo_math_rodeoVec2_to_cglmVec2(a),
 		irodeo_math_rodeoVec2_to_cglmVec2(b)
 	);

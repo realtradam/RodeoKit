@@ -48,12 +48,14 @@ rodeo_math_vec3_dot(rodeo_math_vec3_t a, rodeo_math_vec3_t b)
 	);
 }
 
-float
+rodeo_math_vec3_t
 rodeo_math_vec3_cross(rodeo_math_vec3_t a, rodeo_math_vec3_t b)
 {
-	return glms_vec3_dot(
-		irodeo_math_rodeoVec3_to_cglmVec3(a),
-		irodeo_math_rodeoVec3_to_cglmVec3(b)
+	return irodeo_math_cglmVec3_to_rodeoVec3(
+		glms_vec3_cross(
+			irodeo_math_rodeoVec3_to_cglmVec3(a),
+			irodeo_math_rodeoVec3_to_cglmVec3(b)
+		)
 	);
 }
 
