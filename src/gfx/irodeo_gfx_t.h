@@ -61,6 +61,7 @@ struct
 	irodeo_gfx_dimensions_extra_t dimensions_extra;
 	rodeo_math_mat4_t matrix_stack_top;
 	stc_gfx_matrix_stack matrix_stack;
+	rodeo_math_mat4_t camera_2d_matrix;
 }
 irodeo_gfx_state_t;
 

@@ -24,6 +24,12 @@ irodeo_gfx_dimensions_extra_update(void);
 irodeo_gfx_dimensions_extra_t
 irodeo_gfx_dimensions_extra_get(void);
 
+void
+irodeo_gfx_camera_2d_init(void);
+
+void
+irodeo_gfx_camera_2d_deinit(void);
+
 #define											\
 mrodeo_bgfx_vertex_layout_do(vertex_layout)		\
 	mrodeo_defer_do(							\

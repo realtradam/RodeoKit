@@ -3,6 +3,7 @@
 // -- internal --
 // public
 #include "rodeo_types.h"
+#include "rodeo/math/vec2_t.h"
 // -- system --
 #include <inttypes.h>
 
@@ -66,4 +67,14 @@ struct
 rodeo_gfx_vertex_t;
 
 typedef uint16_t rodeo_gfx_index_t;
+
+typedef
+struct
+{
+	rodeo_math_vec2_t target;
+	float turns;
+	float zoom;
+	rodeo_math_vec2_t offset;
+}
+rodeo_gfx_camera_2d_t;
 

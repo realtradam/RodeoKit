@@ -147,6 +147,19 @@ rodeo_gfx_matrix_size(void);
 uint32_t
 rodeo_gfx_matrix_capacity(void);
 
+void
+rodeo_gfx_camera_2d_begin(rodeo_gfx_camera_2d_t camera);
+
+void
+rodeo_gfx_camera_2d_end(void);
+
+#define \
+mrodeo_gfx_camera_do(camera) \
+	mrodeo_defer_do( \
+		rodeo_gfx_camera_2d_begin(camera), \
+		rodeo_gfx_camera_2d_end() \
+	)
+
 #define \
 mrodeo_gfx_scissor_do(rectangle) \
 	mrodeo_defer_do( \

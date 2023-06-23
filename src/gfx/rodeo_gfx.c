@@ -5,6 +5,7 @@
 #include "rodeo/gfx.h"
 #include "rodeo/window.h"
 #include "rodeo/log.h"
+#include "rodeo/math.h"
 // private
 #include "gfx/irodeo_gfx.h"
 #include "window/irodeo_window.h"
@@ -183,6 +184,7 @@ rodeo_gfx_init(float width, float height)
 			);
 
 	irodeo_gfx_matrix_init();
+	irodeo_gfx_camera_2d_init();
 
 	irodeo_gfx_state.frame_end = (uint32_t)SDL_GetPerformanceCounter();
 }
@@ -190,6 +192,7 @@ rodeo_gfx_init(float width, float height)
 void
 rodeo_gfx_deinit(void)
 {
+	irodeo_gfx_camera_2d_deinit();
 	irodeo_gfx_matrix_deinit();
 
 	free(irodeo_gfx_state.default_texture.data);
@@ -407,6 +410,8 @@ irodeo_gfx_frame_stall(void)
 	}
 }
 
+#include "math/irodeo_mat4.h"
+
 void
 rodeo_gfx_renderer_flush(void)
 {
@@ -467,7 +472,13 @@ rodeo_gfx_renderer_flush(void)
 		//	irodeo_gfx_state.matrix_stack_top
 		//);
 		//bgfx_set_transform(&result_matrix.raw, 1);
-		bgfx_set_transform(&irodeo_gfx_state.matrix_stack_top, 1);
+	
+		//irodeo_print_matrix(irodeo_gfx_state.camera_2d_matrix);
+		rodeo_math_mat4_t transform = rodeo_math_mat4_multiply(
+			irodeo_gfx_state.matrix_stack_top,
+			irodeo_gfx_state.camera_2d_matrix
+		);
+		bgfx_set_transform(&transform, 1);
 
 		// submit vertices & batches
 		bgfx_submit(0, irodeo_gfx_state.program_shader, 0, BGFX_DISCARD_NONE);
@@ -997,6 +1008,42 @@ uint32_t
 rodeo_gfx_matrix_capacity(void)
 {
 	return (uint32_t)stc_gfx_matrix_stack_capacity(&irodeo_gfx_state.matrix_stack);
+}
+
+void
+irodeo_gfx_camera_2d_init(void)
+{
+	irodeo_gfx_state.camera_2d_matrix = rodeo_math_mat4_identity();
+}
+
+void
+irodeo_gfx_camera_2d_deinit(void)
+{
+	// nothing to do
+}
+
+void
+rodeo_gfx_camera_2d_begin(rodeo_gfx_camera_2d_t camera)
+{
+	rodeo_gfx_renderer_flush();
+
+    irodeo_gfx_state.camera_2d_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.camera_2d_matrix, (rodeo_math_vec3_t){ .val.x = -camera.target.val.x, .val.y = -camera.target.val.y, .val.z = 0.0f });
+	irodeo_gfx_state.camera_2d_matrix = rodeo_math_mat4_rotate(irodeo_gfx_state.camera_2d_matrix, camera.turns, (rodeo_math_vec3_t){ .val.z = 1 });
+    //rodeo_math_mat4_t matRotation = MatrixRotate((rodeo_math_vec3_t){ 0.0f, 0.0f, 1.0f }, camera.rotation*DEG2RAD);
+	irodeo_gfx_state.camera_2d_matrix = rodeo_math_mat4_scale(irodeo_gfx_state.camera_2d_matrix, (rodeo_math_vec3_t){ .val.x = camera.zoom, .val.y = camera.zoom, .val.z = 1.0f });
+    //rodeo_math_mat4_t matScale = MatrixScale(camera.zoom, camera.zoom, 1.0f);
+	irodeo_gfx_state.camera_2d_matrix = rodeo_math_mat4_translate(irodeo_gfx_state.camera_2d_matrix, (rodeo_math_vec3_t){ .val.x = camera.offset.val.x, .val.y = camera.offset.val.y });
+    //rodeo_math_mat4_t matTranslation = MatrixTranslate(camera.offset.x, camera.offset.y, 0.0f);
+
+	// build matrix
+}
+
+void
+rodeo_gfx_camera_2d_end(void)
+{
+	rodeo_gfx_renderer_flush();
+
+	irodeo_gfx_state.camera_2d_matrix = rodeo_math_mat4_identity();
 }
 
 bgfx_shader_handle_t
