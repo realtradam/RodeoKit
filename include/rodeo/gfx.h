@@ -74,6 +74,9 @@ rodeo_gfx_vertex_maxSize(void);
 void
 rodeo_gfx_index_add(rodeo_gfx_index_t index);
 
+uint16_t
+rodeo_gfx_index_size(void);
+
 rodeo_gfx_index_t
 rodeo_gfx_index_count_get(void);
 
@@ -82,6 +85,9 @@ rodeo_gfx_index_count_increment(uint16_t amount);
 
 uint16_t
 rodeo_gfx_index_maxSize(void);
+
+void
+rodeo_gfx_texture_set(rodeo_gfx_texture_2d_t texture);
 
 void
 rodeo_gfx_texture_2d_draw(

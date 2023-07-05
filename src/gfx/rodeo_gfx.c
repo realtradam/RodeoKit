@@ -591,6 +591,12 @@ rodeo_gfx_index_add(rodeo_gfx_index_t index)
 	}
 }
 
+uint16_t
+rodeo_gfx_index_size(void)
+{
+	return irodeo_gfx_state.index_size;
+}
+
 rodeo_gfx_index_t
 rodeo_gfx_index_count_get(void)
 {

@@ -142,6 +142,12 @@ rodeo_window_quit(void)
 	irodeo_window_state.quit = true;
 }
 
+uint64_t
+rodeo_window_elapsedTime_ms(void)
+{
+	return SDL_GetTicks64();
+}
+
 SDL_Window *
 irodeo_window_get(void)
 {

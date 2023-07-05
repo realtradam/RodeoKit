@@ -33,6 +33,9 @@ rodeo_window_shouldQuit(void);
 void
 rodeo_window_quit(void);
 
+uint64_t
+rodeo_window_elapsedTime_ms(void);
+
 #define								\
 mrodeo_window_do(					\
 	screen_width,					\
